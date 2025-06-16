@@ -292,14 +292,6 @@ docker-compose up -d
 4. 推送到分支 (`git push origin feature/AmazingFeature`)
 5. 开启 Pull Request
 
-## 📄 许可证
-
-此项目采用 MIT 许可证。详见 [LICENSE](LICENSE) 文件。
-
-## 📞 联系我们
-
-- 项目链接: [GitHub Repository]
-- 问题反馈: [GitHub Issues]
 
 ---
 
