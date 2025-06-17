@@ -5,7 +5,7 @@
 """
 
 from typing import Optional, List
-from pydantic import BaseSettings, Field
+from pydantic import Field
 from pydantic_settings import BaseSettings
 import os
 from pathlib import Path
@@ -24,14 +24,14 @@ class Settings(BaseSettings):
     api_prefix: str = Field(default="/api/v1", env="API_PREFIX")
     
     # 安全配置
-    secret_key: str = Field(env="SECRET_KEY")
+    secret_key: str = Field(default="test-secret-key-for-development", env="SECRET_KEY")
     allowed_hosts: List[str] = Field(default=["localhost", "127.0.0.1"], env="ALLOWED_HOSTS")
     
     # 数据库配置
-    database_url: str = Field(env="DATABASE_URL")
-    postgres_user: str = Field(env="POSTGRES_USER")
-    postgres_password: str = Field(env="POSTGRES_PASSWORD") 
-    postgres_db: str = Field(env="POSTGRES_DB")
+    database_url: str = Field(default="postgresql+asyncpg://user:pass@localhost:5432/testdb", env="DATABASE_URL")
+    postgres_user: str = Field(default="testuser", env="POSTGRES_USER")
+    postgres_password: str = Field(default="testpass", env="POSTGRES_PASSWORD") 
+    postgres_db: str = Field(default="testdb", env="POSTGRES_DB")
     postgres_host: str = Field(default="localhost", env="POSTGRES_HOST")
     postgres_port: int = Field(default=5432, env="POSTGRES_PORT")
     
@@ -45,10 +45,10 @@ class Settings(BaseSettings):
     chroma_collection_name: str = Field(default="item_knowledge", env="CHROMA_COLLECTION_NAME")
     
     # 蓝心大模型API配置
-    lanxin_api_key: str = Field(env="LANXIN_API_KEY")
-    lanxin_api_base_url: str = Field(default="https://api.lanxin.ai/v1", env="LANXIN_API_BASE_URL")
-    lanxin_vision_model: str = Field(default="lanxin-vision-pro", env="LANXIN_VISION_MODEL")
-    lanxin_text_model: str = Field(default="lanxin-chat-pro", env="LANXIN_TEXT_MODEL")
+    lanxin_app_id: str = Field(default="2025251747", env="LANXIN_APP_ID")
+    lanxin_app_key: str = Field(default="wmuPTuICigJsKdYU", env="LANXIN_APP_KEY")
+    lanxin_api_base_url: str = Field(default="https://api-ai.vivo.com.cn/vivogpt/completions", env="LANXIN_API_BASE_URL")
+    lanxin_text_model: str = Field(default="vivo-BlueLM-TB-Pro", env="LANXIN_TEXT_MODEL")
     
     # 文件存储配置
     upload_dir: str = Field(default=str(BASE_DIR / "data" / "uploads"), env="UPLOAD_DIR")
