@@ -5,7 +5,7 @@ gunicorn==21.2.0
 
 # 异步任务队列
 celery[redis]==5.3.4
-redis==5.0.1
+redis==4.6.0
 
 # 数据库
 asyncpg==0.29.0
