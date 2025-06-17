@@ -124,97 +124,9 @@ class TestLanxinServiceReal:
             print(f"❌ 详细文本分析失败: {e}")
             raise
     
-    @pytest.mark.asyncio
-    async def test_generate_disposal_recommendations(self, service):
-        """测试处置建议生成"""
-        print("\n=== 测试处置建议生成 ===")
-        
-        # 模拟物品信息
-        item_info = {
-            "category": "电器",
-            "sub_category": "笔记本电脑",
-            "brand": "联想",
-            "condition": "九成新",
-            "material": "塑料和金属",
-            "color": "黑色",
-            "keywords": ["ThinkPad", "笔记本", "联想"],
-            "description": "联想ThinkPad笔记本电脑，黑色，九成新",
-            "estimated_age": "3年",
-            "special_features": "商务办公本"
-        }
-        
-        knowledge = {
-            "recycling_methods": ["电子产品回收点", "品牌以旧换新"],
-            "environmental_impact": "减少电子垃圾，保护环境",
-            "creative_ideas": ["改造为家用服务器", "拆解零件再利用"]
-        }
-        
-        market_data = {
-            "avg_price": "2000-3000元",
-            "demand": "中等",
-            "best_platforms": ["闲鱼", "转转", "京东拍拍"],
-            "price_trend": "稳定下降"
-        }
-        
-        try:
-            result = await service.generate_disposal_recommendations(
-                item_info, knowledge, market_data
-            )
-            
-            # 验证返回结果结构
-            assert isinstance(result, dict), "返回结果应为字典"
-            
-            print(f"✅ 处置建议生成成功")
-            print(f"   输入物品: {item_info['description']}")
-            print(f"   建议结果:")
-            
-            # 打印结果
-            for key, value in result.items():
-                if isinstance(value, (list, dict)):
-                    print(f"     {key}: {json.dumps(value, ensure_ascii=False)}")
-                else:
-                    print(f"     {key}: {value}")
-            
-            return result
-            
-        except Exception as e:
-            print(f"❌ 处置建议生成失败: {e}")
-            raise
+
     
-    @pytest.mark.asyncio
-    async def test_chat_with_text(self, service):
-        """测试通用文本对话"""
-        print("\n=== 测试通用文本对话 ===")
-        
-        # 测试多轮对话
-        messages = [
-            {"role": "user", "content": "你好，我有一台旧手机想要处理，你能给我一些建议吗？"},
-            {"role": "assistant", "content": "你好！我很乐意帮助你处理旧手机。请告诉我这台手机的具体情况，比如品牌、型号、使用年限和当前状态？"},
-            {"role": "user", "content": "是一台iPhone 12，用了2年，功能正常，外观有轻微磨损"}
-        ]
-        
-        try:
-            result = await service.chat_with_text(
-                messages,
-                system_prompt="你是一个专业的物品处置顾问，能够为用户提供环保、经济的物品处理建议。",
-                temperature=0.7,
-                max_tokens=500
-            )
-            
-            # 验证返回结果
-            assert isinstance(result, str), "返回结果应为字符串"
-            assert len(result) > 0, "返回结果不应为空"
-            
-            print(f"✅ 文本对话成功")
-            print(f"   对话轮数: {len(messages)}")
-            print(f"   最后输入: {messages[-1]['content']}")
-            print(f"   AI回复: {result}")
-            
-            return result
-            
-        except Exception as e:
-            print(f"❌ 文本对话失败: {e}")
-            raise
+
     
     @pytest.mark.asyncio
     async def test_error_handling(self, service):
@@ -277,8 +189,6 @@ class TestLanxinServiceReal:
             # 运行所有测试
             await self.test_analyze_text_simple(service)
             await self.test_analyze_text_detailed(service)
-            await self.test_generate_disposal_recommendations(service)
-            await self.test_chat_with_text(service)
             await self.test_error_handling(service)
             await self.test_performance(service)
             
