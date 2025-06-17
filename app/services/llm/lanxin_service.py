@@ -12,6 +12,7 @@ from urllib.parse import urlencode, urlparse
 from app.core.config import settings
 from app.core.logger import app_logger
 from app.utils.vivo_auth import gen_sign_headers
+from app.prompts.llm_prompts import LLMPrompts
 
 
 class LanxinService:
@@ -60,23 +61,8 @@ class LanxinService:
             request_body = {
                 "model": self.text_model,
                 "sessionId": session_id,
-                "systemPrompt": "你是一个专业的物品分析专家，擅长根据描述分析物品的详细信息。",
-                "prompt": f"""请根据以下描述分析物品信息，并以JSON格式返回：
-描述：{text_description}
-
-请返回格式：
-{{
-    "category": "物品大类",
-    "sub_category": "物品细分类",
-    "brand": "品牌（如果能推断）",
-    "condition": "物品状态",
-    "material": "主要材质",
-    "color": "主要颜色",
-    "keywords": ["关键词1", "关键词2", "关键词3"],
-    "description": "标准化描述",
-    "estimated_age": "估计使用年限",
-    "special_features": "特殊特征"
-}}""",
+                "systemPrompt": LLMPrompts.get_text_analysis_system_prompt(),
+                "prompt": LLMPrompts.get_text_analysis_prompt(text_description),
                 "extra": {
                     "temperature": 0.1,
                     "top_p": 0.7,
@@ -135,18 +121,27 @@ class LanxinService:
                 "description": text_description
             }
     
-    async def generate_disposal_recommendations(
-        self,
-        item_info: Dict[str, Any],
-        knowledge: Dict[str, Any],
-        market_data: Dict[str, Any],
-        user_location: Optional[Any] = None
-    ) -> Dict[str, Any]:
-        """生成处置建议"""
+
+    
+
+    
+    async def analyze_image(self, image_path: str) -> Dict[str, Any]:
+        """分析图片中的物品（使用蓝心视觉大模型）"""
         
-        app_logger.info("开始生成处置建议")
+        app_logger.info("开始分析图片内容")
         
         try:
+            import base64
+            from pathlib import Path
+            
+            # 检查图片文件是否存在
+            if not Path(image_path).exists():
+                raise FileNotFoundError(f"图片文件不存在: {image_path}")
+            
+            # 读取并编码图片
+            with open(image_path, "rb") as image_file:
+                image_data = base64.b64encode(image_file.read()).decode('utf-8')
+            
             # 生成请求ID和会话ID
             request_id = str(uuid.uuid4())
             session_id = str(uuid.uuid4())
@@ -154,65 +149,30 @@ class LanxinService:
             # 构造请求参数
             url_params = {"requestId": request_id}
             
-            # 构造提示词
-            prompt = f"""
-作为物品处置专家，请根据以下信息为用户提供最优的处置建议：
-
-物品信息：
-{json.dumps(item_info, ensure_ascii=False, indent=2)}
-
-相关知识：
-{json.dumps(knowledge, ensure_ascii=False, indent=2)}
-
-市场数据：
-{json.dumps(market_data, ensure_ascii=False, indent=2)}
-
-请从以下三个维度评估并给出建议：
-1. 创意改造 (creative_makeover)
-2. 回收捐赠 (recycling_donation)
-3. 二手交易 (second_hand_trade)
-
-返回JSON格式：
-{{
-    "creative_score": 0-100的评分,
-    "creative_reasons": ["原因1", "原因2"],
-    "creative_details": {{
-        "overview": {{
-            "step_count": 步骤数量,
-            "estimated_time": "预计时间",
-            "difficulty": "难度等级"
-        }},
-        "steps": [步骤详情],
-        "materials_needed": ["所需材料"],
-        "final_result": "改造后的效果"
-    }},
-    "recycling_score": 0-100的评分,
-    "recycling_reasons": ["原因1", "原因2"],
-    "recycling_details": {{
-        "channels": [回收渠道],
-        "donation_options": [捐赠选项],
-        "environmental_impact": "环保影响"
-    }},
-    "trade_score": 0-100的评分,
-    "trade_reasons": ["原因1", "原因2"],
-    "trade_details": {{
-        "estimated_price": "预估价格",
-        "best_platforms": ["推荐平台"],
-        "selling_tips": ["销售建议"]
-    }}
-}}
-"""
+            # 获取图像分析提示词
+            prompt = LLMPrompts.get_image_analysis_prompt()
             
-            # 构造请求体
+            # 构造请求体 - 按照参考代码的格式
             request_body = {
-                "model": self.text_model,
+                "model": "BlueLM-Vision-prd",  # 使用视觉模型
                 "sessionId": session_id,
-                "systemPrompt": "你是一个专业的物品处置和环保专家，能够为用户提供科学、实用的物品处置建议。",
-                "prompt": prompt,
+                "requestId": request_id,
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": f"data:image/JPEG;base64,{image_data}",
+                        "contentType": "image"
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt,
+                        "contentType": "text"
+                    }
+                ],
                 "extra": {
-                    "temperature": 0.3,
+                    "temperature": 0.1,
                     "top_p": 0.7,
-                    "max_new_tokens": 2000
+                    "max_tokens": 1000
                 }
             }
             
@@ -234,122 +194,84 @@ class LanxinService:
             
             # 检查响应状态
             if result.get("code") != 0:
-                app_logger.error(f"API调用失败: {result.get('msg', '未知错误')}")
-                raise Exception(f"API调用失败: {result.get('msg', '未知错误')}")
+                app_logger.error(f"视觉API调用失败: {result.get('msg', '未知错误')}")
+                raise Exception(f"视觉API调用失败: {result.get('msg', '未知错误')}")
             
+            # 解析返回的JSON
             content = result["data"]["content"]
             
             # 尝试解析JSON内容
             try:
-                recommendations = json.loads(content)
+                # 首先尝试直接解析
+                item_info = json.loads(content)
+                app_logger.info("图片分析完成，直接解析JSON成功")
             except json.JSONDecodeError:
-                app_logger.warning("返回内容不是标准JSON格式，使用默认建议")
-                recommendations = {
-                    "creative_score": 50,
-                    "creative_reasons": ["可以尝试改造"],
-                    "creative_details": {},
-                    "recycling_score": 70,
-                    "recycling_reasons": ["环保处理"],
-                    "recycling_details": {},
-                    "trade_score": 40,
-                    "trade_reasons": ["可以尝试出售"],
-                    "trade_details": {}
-                }
+                # 如果失败，尝试从代码块中提取JSON
+                app_logger.info("尝试从代码块中提取JSON")
+                try:
+                    # 查找 ```json 代码块
+                    if "```json" in content:
+                        # 提取代码块中的JSON内容
+                        start_marker = "```json"
+                        end_marker = "```"
+                        start_index = content.find(start_marker)
+                        if start_index != -1:
+                            start_index += len(start_marker)
+                            end_index = content.find(end_marker, start_index)
+                            if end_index != -1:
+                                json_str = content[start_index:end_index].strip()
+                                item_info = json.loads(json_str)
+                                app_logger.info("图片分析完成，从代码块解析JSON成功")
+                            else:
+                                raise json.JSONDecodeError("找不到结束标记", content, 0)
+                        else:
+                            raise json.JSONDecodeError("找不到开始标记", content, 0)
+                    else:
+                        # 如果没有代码块，尝试查找第一个{和最后一个}之间的内容
+                        first_brace = content.find('{')
+                        last_brace = content.rfind('}')
+                        if first_brace != -1 and last_brace != -1 and first_brace < last_brace:
+                            json_str = content[first_brace:last_brace + 1]
+                            item_info = json.loads(json_str)
+                            app_logger.info("图片分析完成，提取花括号内容解析JSON成功")
+                        else:
+                            raise json.JSONDecodeError("找不到有效的JSON结构", content, 0)
+                    
+                except json.JSONDecodeError:
+                    # 如果所有解析都失败，使用默认解析
+                    app_logger.warning("视觉分析返回内容无法解析为JSON，使用默认解析")
+                    item_info = {
+                        "category": "未知",
+                        "sub_category": "未知",
+                        "condition": "未知", 
+                        "keywords": [],
+                        "description": content,
+                        "analysis_result": content  # 保存原始分析结果
+                    }
             
-            app_logger.info("处置建议生成完成")
-            return recommendations
+            app_logger.info("图片分析完成")
+            return item_info
             
-        except Exception as e:
-            app_logger.error(f"生成处置建议失败: {e}")
-            # 返回默认建议
+        except FileNotFoundError as e:
+            app_logger.error(f"图片文件错误: {e}")
             return {
-                "creative_score": 50,
-                "creative_reasons": ["可以尝试改造"],
-                "creative_details": {},
-                "recycling_score": 70,
-                "recycling_reasons": ["环保处理"],
-                "recycling_details": {},
-                "trade_score": 40,
-                "trade_reasons": ["可以尝试出售"],
-                "trade_details": {}
+                "category": "错误",
+                "sub_category": "文件不存在",
+                "condition": "未知",
+                "keywords": [],
+                "description": f"图片文件不存在: {image_path}"
             }
-    
-    async def chat_with_text(
-        self,
-        messages: List[Dict[str, str]],
-        system_prompt: Optional[str] = None,
-        **kwargs
-    ) -> str:
-        """通用文本对话接口"""
-        
-        app_logger.info("开始文本对话")
-        
-        try:
-            # 生成请求ID和会话ID
-            request_id = str(uuid.uuid4())
-            session_id = str(uuid.uuid4())
-            
-            # 构造请求参数
-            url_params = {"requestId": request_id}
-            
-            # 构造请求体
-            request_body = {
-                "model": self.text_model,
-                "sessionId": session_id,
-                "messages": messages,
-                "extra": {
-                    "temperature": kwargs.get("temperature", 0.7),
-                    "top_p": kwargs.get("top_p", 0.7),
-                    "max_new_tokens": kwargs.get("max_tokens", 1000)
-                }
-            }
-            
-            if system_prompt:
-                request_body["systemPrompt"] = system_prompt
-            
-            # 获取鉴权头部
-            parsed_url = urlparse(self.base_url)
-            uri = parsed_url.path
-            headers = self._get_auth_headers("POST", uri, url_params)
-            
-            # 发送请求
-            url = f"{self.base_url}?{urlencode(url_params)}"
-            response = await self.client.post(
-                url,
-                headers=headers,
-                json=request_body
-            )
-            
-            response.raise_for_status()
-            result = response.json()
-            
-            # 检查响应状态
-            if result.get("code") != 0:
-                app_logger.error(f"API调用失败: {result.get('msg', '未知错误')}")
-                raise Exception(f"API调用失败: {result.get('msg', '未知错误')}")
-            
-            content = result["data"]["content"]
-            app_logger.info("文本对话完成")
-            return content
-            
         except Exception as e:
-            app_logger.error(f"文本对话失败: {e}")
-            return "抱歉，我现在无法处理您的请求，请稍后再试。"
+            app_logger.error(f"图片分析失败: {e}")
+            return {
+                "category": "未知",
+                "sub_category": "未知",
+                "condition": "未知",
+                "keywords": [],
+                "description": f"图片分析失败: {str(e)}"
+            }
     
-    # 为了向后兼容，保留原有的analyze_image方法，但标记为不支持
-    async def analyze_image(self, image_url: str) -> Dict[str, Any]:
-        """分析图片中的物品（当前API不支持视觉功能）"""
-        
-        app_logger.warning("当前VIVO BlueLM API不支持图片分析功能")
-        
-        # 返回默认值
-        return {
-            "category": "未知",
-            "sub_category": "未知",
-            "condition": "未知",
-            "keywords": [],
-            "description": "当前API版本不支持图片分析，请使用文字描述"
-        }
+
     
     async def __aenter__(self):
         return self
