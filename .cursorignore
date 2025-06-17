@@ -1,0 +1,107 @@
+# 文档内容（暂时忽略，需要时再排除）
+docs/
+
+# Python 编译文件和缓存
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# 虚拟环境
+.env
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE 和编辑器文件
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 日志文件
+logs/
+*.log
+
+# 数据库文件
+*.db
+*.sqlite3
+data/chroma_db/
+alembic/versions/__pycache__/
+
+# 上传文件和临时数据
+data/uploads/
+*.tmp
+*.temp
+
+# 测试覆盖率和报告
+htmlcov/
+.coverage
+.pytest_cache/
+.tox/
+.nox/
+coverage.xml
+*.cover
+
+# 打包和分发
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# 环境配置文件（包含敏感信息）
+.env.local
+.env.production
+
+# Celery 相关
+celerybeat-schedule
+celerybeat.pid
+
+# mypy 类型检查
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# 大型二进制文件和模型文件
+*.bin
+*.model
+*.pkl
+*.h5
+*.pt
+*.pth
+
+# 文档构建输出
+docs/_build/
+site/
+
+# 临时文件和备份
+*.bak
+*.backup
+*.orig
+
+# Git 相关
+.git/
+.gitignore
+
+# 依赖锁定文件（根据需要调整）
+poetry.lock
+Pipfile.lock
+
+# 特定于项目的大型数据文件
+data/raw/
+data/processed/
+data/external/
+
+
