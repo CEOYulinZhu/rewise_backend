@@ -70,5 +70,6 @@ class LLMPrompts:
             "text_analysis_system": cls.TEXT_ANALYSIS_SYSTEM_PROMPT,
             "text_analysis_user": cls.TEXT_ANALYSIS_USER_PROMPT_TEMPLATE,
             "image_analysis": cls.IMAGE_ANALYSIS_PROMPT,
+            "keyword_extraction": cls.KEYWORD_EXTRACTION_PROMPT,
         }
     
