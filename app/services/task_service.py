@@ -5,13 +5,15 @@
 """
 
 import uuid
-from typing import Optional, Dict, Any
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from typing import Optional
+
 from geoalchemy2 import WKTElement
-from app.models.task import ProcessingTask, TaskCreate, TaskStatus
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.agents.processing_agent import ProcessingAgent
 from app.core.logger import app_logger
+from app.models.task import ProcessingTask, TaskCreate, TaskStatus
 
 
 class TaskService:
