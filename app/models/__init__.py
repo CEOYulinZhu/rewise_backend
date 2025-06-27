@@ -13,11 +13,27 @@ from .coordinator_models import (
     CoordinatorDataConverter
 )
 
+from .disposal_recommendation_models import (
+    DisposalPathRecommendation,
+    OverallRecommendation,
+    DisposalRecommendations,
+    DisposalRecommendationResponse,
+    DisposalRecommendationDataConverter
+)
+
 __all__ = [
+    # 创意改造协调器模型
     "RenovationStep",
     "RenovationSummary", 
     "RenovationPlan",
     "VideoInfo",
     "CoordinatorResponse",
-    "CoordinatorDataConverter"
+    "CoordinatorDataConverter",
+    
+    # 处置推荐模型
+    "DisposalPathRecommendation",
+    "OverallRecommendation", 
+    "DisposalRecommendations",
+    "DisposalRecommendationResponse",
+    "DisposalRecommendationDataConverter"
 ] 

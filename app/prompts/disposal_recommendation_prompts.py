@@ -4,7 +4,7 @@
 集中管理处置路径推荐相关的LLM提示词模板
 """
 
-from typing import Dict, Any, List
+from typing import Dict, Any
 
 
 class DisposalRecommendationPrompts:
@@ -36,24 +36,16 @@ class DisposalRecommendationPrompts:
 请以JSON格式返回分析结果：
 {{
     "creative_renovation": {{
-        "recommendation_score": 推荐度百分比(0-100),
-        "reason_tags": ["标签1", "标签2", "标签3"],
-        "difficulty_level": "简单/中等/困难",
-        "estimated_time": "预估耗时",
-        "estimated_cost": "预估成本"
+        "recommendation_score": 推荐度数字(0-100之间的整数),
+        "reason_tags": ["标签1", "标签2", "标签3"，"标签4","标签5"]
     }},
     "recycling_donation": {{
-        "recommendation_score": 推荐度百分比(0-100),
-        "reason_tags": ["标签1", "标签2", "标签3"],
-        "environmental_impact": "环保影响评分(1-5)",
-        "social_value": "社会价值评分(1-5)"
+        "recommendation_score": 推荐度数字(0-100之间的整数),
+        "reason_tags": ["标签1", "标签2", "标签3"，"标签4","标签5"]
     }},
     "secondhand_trading": {{
-        "recommendation_score": 推荐度百分比(0-100),
-        "reason_tags": ["标签1", "标签2", "标签3"],
-        "estimated_price_range": "预估价格区间",
-        "market_demand": "市场需求(低/中/高)",
-        "selling_difficulty": "销售难度(易/中/难)"
+        "recommendation_score": 推荐度数字(0-100之间的整数),
+        "reason_tags": ["标签1", "标签2", "标签3"，"标签4","标签5"]
     }},
     "overall_recommendation": {{
         "primary_choice": "最推荐的处置方式",
@@ -62,8 +54,9 @@ class DisposalRecommendationPrompts:
 }}
 
 注意事项：
+- 推荐度必须是0-100之间的整数，不含百分号或其他单位
 - 每个推荐理由标签不超过7个字
-- 推荐度总和应接近100%
+- 标签数量必须控制在5-7个
 - 标签要具体、实用、易懂
 - 考虑物品的实际价值和处置可行性"""
 
@@ -180,34 +173,18 @@ class DisposalRecommendationPrompts:
         return {
             "creative_renovation": {
                 "recommendation_score": creative_score,
-                "reason_tags": category_prefs["creative_renovation"]["tags"],
-                "difficulty_level": "中等",
-                "estimated_time": "1-3天",
-                "estimated_cost": "50-200元"
+                "reason_tags": category_prefs["creative_renovation"]["tags"]
             },
             "recycling_donation": {
                 "recommendation_score": recycling_score,
-                "reason_tags": category_prefs["recycling_donation"]["tags"],
-                "environmental_impact": 4,
-                "social_value": 4
+                "reason_tags": category_prefs["recycling_donation"]["tags"]
             },
             "secondhand_trading": {
                 "recommendation_score": trading_score,
-                "reason_tags": category_prefs["secondhand_trading"]["tags"],
-                "estimated_price_range": "待评估",
-                "market_demand": "中",
-                "selling_difficulty": "中"
+                "reason_tags": category_prefs["secondhand_trading"]["tags"]
             },
             "overall_recommendation": {
                 "primary_choice": primary_choice,
                 "reason": f"基于{category}类别和{condition}状态的综合评估"
             }
-        }
-
-    @classmethod
-    def get_all_prompts(cls) -> Dict[str, str]:
-        """获取所有提示词"""
-        return {
-            "system": cls.SYSTEM_PROMPT,
-            "user_template": cls.USER_PROMPT_TEMPLATE
         } 

@@ -13,17 +13,18 @@ from urllib.parse import urlencode, urlparse
 
 from app.core.config import settings
 from app.core.logger import app_logger
-from app.services.llm.lanxin_service import LanxinService
 from app.utils.vivo_auth import gen_sign_headers
 from app.prompts.disposal_recommendation_prompts import DisposalRecommendationPrompts
+from app.models.disposal_recommendation_models import (
+    DisposalRecommendationResponse,
+    DisposalRecommendationDataConverter
+)
 
 
 class DisposalRecommendationAgent:
     """三大处置路径推荐Agent - 智能处置方案分析"""
     
     def __init__(self):
-        self.lanxin_service = LanxinService()
-        
         # 蓝心大模型API配置
         self.app_id = settings.lanxin_app_id
         self.app_key = settings.lanxin_app_key
@@ -63,7 +64,7 @@ class DisposalRecommendationAgent:
                 "extra": {
                     "temperature": 0.2,  # 较低的温度确保更稳定的输出
                     "top_p": 0.8,
-                    "max_new_tokens": 1000
+                    "max_new_tokens": 2000
                 }
             }
             
@@ -161,135 +162,25 @@ class DisposalRecommendationAgent:
         
         return True
     
-    async def recommend_from_image(self, image_path: str) -> Dict[str, Any]:
-        """从图片分析获取处置路径推荐
+    async def recommend_from_analysis(self, analysis_result: Dict[str, Any]) -> DisposalRecommendationResponse:
+        """从分析结果获取处置路径推荐
         
         Args:
-            image_path: 图片文件路径
+            analysis_result: 物品分析结果，包含category、condition、description等信息
             
         Returns:
-            包含三大处置路径推荐的字典
-        """
-        try:
-            app_logger.info(f"开始从图片分析处置路径推荐: {image_path}")
-            
-            # 1. 图片分析
-            app_logger.info("步骤1: 分析图片内容")
-            analysis_result = await self.lanxin_service.analyze_image(image_path)
-            
-            if not analysis_result or analysis_result.get("category") == "错误":
-                return {
-                    "success": False,
-                    "error": "图片分析失败",
-                    "source": "image_analysis"
-                }
-            
-            # 2. 处置路径推荐
-            app_logger.info("步骤2: 使用蓝心大模型分析处置路径推荐")
-            recommendation_result = await self._get_disposal_recommendations(analysis_result)
-            
-            if not recommendation_result.get("success"):
-                # 使用备用推荐逻辑
-                app_logger.warning("大模型推荐失败，使用备用推荐逻辑")
-                fallback_result = DisposalRecommendationPrompts.get_fallback_recommendations(
-                    category=analysis_result.get("category", "未知"),
-                    condition=analysis_result.get("condition", "八成新")
-                )
-                recommendation_result = {
-                    "success": True,
-                    "recommendations": fallback_result,
-                    "source": "fallback"
-                }
-            
-            app_logger.info("处置路径推荐分析完成")
-            return {
-                "success": True,
-                "source": "image",
-                "image_path": image_path,
-                "analysis_result": analysis_result,
-                "recommendations": recommendation_result["recommendations"],
-                "recommendation_source": recommendation_result.get("source", "ai_model")
-            }
-            
-        except Exception as e:
-            app_logger.error(f"从图片分析处置路径推荐失败: {e}")
-            return {
-                "success": False,
-                "error": str(e),
-                "source": "image",
-                "image_path": image_path
-            }
-    
-    async def recommend_from_text(self, text_description: str) -> Dict[str, Any]:
-        """从文字描述获取处置路径推荐
-        
-        Args:
-            text_description: 物品的文字描述
-            
-        Returns:
-            包含三大处置路径推荐的字典
-        """
-        try:
-            app_logger.info(f"开始从文字描述分析处置路径推荐: {text_description[:50]}...")
-            
-            # 1. 文字分析
-            app_logger.info("步骤1: 分析文字内容")
-            analysis_result = await self.lanxin_service.analyze_text(text_description)
-            
-            if not analysis_result:
-                return {
-                    "success": False,
-                    "error": "文字分析失败",
-                    "source": "text_analysis"
-                }
-            
-            # 2. 处置路径推荐
-            app_logger.info("步骤2: 使用蓝心大模型分析处置路径推荐")
-            recommendation_result = await self._get_disposal_recommendations(analysis_result)
-            
-            if not recommendation_result.get("success"):
-                # 使用备用推荐逻辑
-                app_logger.warning("大模型推荐失败，使用备用推荐逻辑")
-                fallback_result = DisposalRecommendationPrompts.get_fallback_recommendations(
-                    category=analysis_result.get("category", "未知"),
-                    condition=analysis_result.get("condition", "八成新")
-                )
-                recommendation_result = {
-                    "success": True,
-                    "recommendations": fallback_result,
-                    "source": "fallback"
-                }
-            
-            app_logger.info("处置路径推荐分析完成")
-            return {
-                "success": True,
-                "source": "text",
-                "original_text": text_description,
-                "analysis_result": analysis_result,
-                "recommendations": recommendation_result["recommendations"],
-                "recommendation_source": recommendation_result.get("source", "ai_model")
-            }
-            
-        except Exception as e:
-            app_logger.error(f"从文字描述分析处置路径推荐失败: {e}")
-            return {
-                "success": False,
-                "error": str(e),
-                "source": "text",
-                "original_text": text_description
-            }
-    
-    async def recommend_from_analysis(self, analysis_result: Dict[str, Any]) -> Dict[str, Any]:
-        """从已有的分析结果获取处置路径推荐
-        
-        Args:
-            analysis_result: 物品分析结果
-            
-        Returns:
-            包含三大处置路径推荐的字典
+            结构化的处置推荐响应对象
         """
         try:
             app_logger.info("开始从分析结果生成处置路径推荐")
+            
+            # 验证分析结果格式
+            if not analysis_result or not isinstance(analysis_result, dict):
+                return DisposalRecommendationDataConverter.create_response(
+                    success=False,
+                    source="analysis_validation",
+                    error="分析结果为空或格式错误"
+                )
             
             # 处置路径推荐
             recommendation_result = await self._get_disposal_recommendations(analysis_result)
@@ -308,21 +199,22 @@ class DisposalRecommendationAgent:
                 }
             
             app_logger.info("处置路径推荐分析完成")
-            return {
-                "success": True,
-                "source": "analysis_result",
-                "analysis_result": analysis_result,
-                "recommendations": recommendation_result["recommendations"],
-                "recommendation_source": recommendation_result.get("source", "ai_model")
-            }
+            return DisposalRecommendationDataConverter.create_response(
+                success=True,
+                source="analysis_result",
+                analysis_result=analysis_result,
+                recommendations_dict=recommendation_result["recommendations"],
+                recommendation_source=recommendation_result.get("source", "ai_model"),
+                raw_response=recommendation_result.get("raw_response")
+            )
             
         except Exception as e:
             app_logger.error(f"从分析结果生成处置路径推荐失败: {e}")
-            return {
-                "success": False,
-                "error": str(e),
-                "source": "analysis_result"
-            }
+            return DisposalRecommendationDataConverter.create_response(
+                success=False,
+                source="analysis_result",
+                error=str(e)
+            )
     
     async def _get_disposal_recommendations(self, analysis_result: Dict[str, Any]) -> Dict[str, Any]:
         """获取处置路径推荐"""
@@ -367,7 +259,6 @@ class DisposalRecommendationAgent:
         """关闭Agent相关资源"""
         try:
             await self.client.aclose()
-            await self.lanxin_service.__aexit__(None, None, None)
         except Exception as e:
             app_logger.warning(f"关闭Agent资源时出现警告: {e}")
     
@@ -377,4 +268,5 @@ class DisposalRecommendationAgent:
     
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """异步上下文管理器出口"""
+        await self.close()
  
