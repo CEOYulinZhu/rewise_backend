@@ -36,16 +36,8 @@ class BilibiliSearchPrompts:
 <APIs>[{{"name": "extract_search_keywords", "parameters": {{"keywords": ["关键词1", "关键词2"], "search_intent": "搜索意图说明"}}}}]</APIs>
 否则直接回复用户。"""
     
-    # 图片分析用户提示词模板
-    IMAGE_ANALYSIS_USER_PROMPT_TEMPLATE = """请根据以下图片分析结果提取B站搜索关键词：
-
-分析结果：
-{analysis_result}
-
-请提取3-5个最适合在B站搜索DIY改造教程的关键词，并说明搜索意图。"""
-    
-    # 文字分析用户提示词模板
-    TEXT_ANALYSIS_USER_PROMPT_TEMPLATE = """请根据以下文字分析结果提取B站搜索关键词：
+    # 分析结果用户提示词模板
+    ANALYSIS_RESULT_USER_PROMPT_TEMPLATE = """请根据以下物品分析结果提取B站搜索关键词：
 
 分析结果：
 {analysis_result}
@@ -134,16 +126,10 @@ class BilibiliSearchPrompts:
         return cls.FUNCTION_CALLING_SYSTEM_PROMPT.format(function_definition=function_def)
     
     @classmethod
-    def get_user_prompt_for_image_analysis(cls, analysis_result: Dict[str, Any]) -> str:
-        """获取图片分析结果的用户提示词"""
+    def get_user_prompt_for_analysis_result(cls, analysis_result: Dict[str, Any]) -> str:
+        """获取分析结果的用户提示词"""
         analysis_json = json.dumps(analysis_result, ensure_ascii=False, indent=2)
-        return cls.IMAGE_ANALYSIS_USER_PROMPT_TEMPLATE.format(analysis_result=analysis_json)
-    
-    @classmethod
-    def get_user_prompt_for_text_analysis(cls, analysis_result: Dict[str, Any]) -> str:
-        """获取文字分析结果的用户提示词"""
-        analysis_json = json.dumps(analysis_result, ensure_ascii=False, indent=2)
-        return cls.TEXT_ANALYSIS_USER_PROMPT_TEMPLATE.format(analysis_result=analysis_json)
+        return cls.ANALYSIS_RESULT_USER_PROMPT_TEMPLATE.format(analysis_result=analysis_json)
     
     @classmethod
     def get_fallback_keywords_by_category(cls, category: str, sub_category: str = "", material: str = "") -> list:
@@ -185,12 +171,3 @@ class BilibiliSearchPrompts:
         
         # 默认意图
         return f"寻找{category}相关的DIY改造和创意利用教程"
-    
-    @classmethod
-    def get_all_prompts(cls) -> Dict[str, str]:
-        """获取所有提示词"""
-        return {
-            "function_calling_system": cls.FUNCTION_CALLING_SYSTEM_PROMPT,
-            "image_analysis_user": cls.IMAGE_ANALYSIS_USER_PROMPT_TEMPLATE,
-            "text_analysis_user": cls.TEXT_ANALYSIS_USER_PROMPT_TEMPLATE,
-        }

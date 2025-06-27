@@ -2,7 +2,7 @@
 Bilibili搜索Agent
 
 智能B站视频搜索代理，使用蓝心大模型的Function Calling功能，
-直接接收图片/文字描述，内部完成分析和关键词提取，最终搜索相关教程视频
+基于物品分析结果提取搜索关键词并搜索相关教程视频
 """
 
 import json
@@ -13,17 +13,15 @@ from urllib.parse import urlencode, urlparse
 
 from app.core.config import settings
 from app.core.logger import app_logger
-from app.services.llm.lanxin_service import LanxinService
 from app.services.crawler.bilibili.video_search import BilibiliVideoSearchService
 from app.utils.vivo_auth import gen_sign_headers
 from app.prompts.bilibili_search_prompts import BilibiliSearchPrompts
 
 
 class BilibiliSearchAgent:
-    """Bilibili搜索Agent - 端到端搜索解决方案"""
+    """Bilibili搜索Agent - 基于分析结果的智能视频搜索"""
     
     def __init__(self):
-        self.lanxin_service = LanxinService()
         self.bilibili_service = BilibiliVideoSearchService()
         
         # 蓝心大模型API配置
@@ -115,18 +113,13 @@ class BilibiliSearchAgent:
     
     async def _extract_keywords_with_function_calling(
         self, 
-        analysis_result: Dict[str, Any],
-        source_type: str = "image"
+        analysis_result: Dict[str, Any]
     ) -> Dict[str, Any]:
         """使用Function Calling提取搜索关键词"""
         try:
             # 构建消息
             system_prompt = BilibiliSearchPrompts.get_system_prompt()
-            
-            if source_type == "image":
-                user_prompt = BilibiliSearchPrompts.get_user_prompt_for_image_analysis(analysis_result)
-            else:
-                user_prompt = BilibiliSearchPrompts.get_user_prompt_for_text_analysis(analysis_result)
+            user_prompt = BilibiliSearchPrompts.get_user_prompt_for_analysis_result(analysis_result)
             
             messages = [
                 {
@@ -139,7 +132,7 @@ class BilibiliSearchAgent:
                 }
             ]
             
-            app_logger.info(f"开始使用Function Calling提取关键词，来源: {source_type}")
+            app_logger.info("开始使用Function Calling提取关键词")
             
             # 调用API
             response_data = await self._call_function_calling_api(messages)
@@ -158,6 +151,7 @@ class BilibiliSearchAgent:
                     "success": True,
                     "keywords": keywords,
                     "search_intent": search_intent,
+                    "source": "function_calling",
                     "raw_response": content
                 }
             else:
@@ -212,42 +206,36 @@ class BilibiliSearchAgent:
                 "source": "fallback_default"
             }
     
-    async def search_from_image(
+    async def search_from_analysis(
         self,
-        image_path: str,
+        analysis_result: Dict[str, Any],
         max_videos: int = 5
     ) -> Dict[str, Any]:
-        """从图片文件搜索相关DIY教程视频（完整流程）
+        """从分析结果搜索相关DIY教程视频
         
         Args:
-            image_path: 图片文件路径
+            analysis_result: 物品分析结果，包含category、condition、description等信息
             max_videos: 返回的最大视频数量
             
         Returns:
             包含搜索结果的字典
         """
         try:
-            app_logger.info(f"开始从图片搜索DIY教程视频: {image_path}")
+            app_logger.info("开始从分析结果搜索DIY教程视频")
             
-            # 1. 图片分析
-            app_logger.info("步骤1: 分析图片内容")
-            analysis_result = await self.lanxin_service.analyze_image(image_path)
-            
-            if not analysis_result or analysis_result.get("category") == "错误":
+            # 验证分析结果格式
+            if not analysis_result or not isinstance(analysis_result, dict):
                 return {
                     "success": False,
-                    "error": "图片分析失败",
-                    "source": "image_analysis"
+                    "error": "分析结果为空或格式错误",
+                    "source": "analysis_validation"
                 }
             
-            # 2. 关键词提取
-            app_logger.info("步骤2: 使用Function Calling提取搜索关键词")
-            extraction_result = await self._extract_keywords_with_function_calling(
-                analysis_result=analysis_result,
-                source_type="image"
-            )
+            # 1. 关键词提取
+            app_logger.info("步骤1: 使用Function Calling提取搜索关键词")
+            extraction_result = await self._extract_keywords_with_function_calling(analysis_result)
             
-            # 3. 获取关键词
+            # 2. 获取关键词
             if extraction_result.get("success"):
                 keywords = extraction_result["keywords"]
                 search_intent = extraction_result.get("search_intent", "")
@@ -259,8 +247,8 @@ class BilibiliSearchAgent:
                 search_intent = fallback_result.get("search_intent", "寻找相关DIY教程")
                 extraction_result = fallback_result
             
-            # 4. 搜索B站视频
-            app_logger.info(f"步骤3: 使用关键词搜索B站视频: {keywords}")
+            # 3. 搜索B站视频
+            app_logger.info(f"步骤2: 使用关键词搜索B站视频: {keywords}")
             search_query = " ".join(keywords)
             search_result = await self.bilibili_service.search_videos(
                 keyword=search_query,
@@ -271,7 +259,7 @@ class BilibiliSearchAgent:
             if search_result.get("error"):
                 raise Exception(f"B站搜索失败: {search_result['error']}")
             
-            # 5. 格式化结果
+            # 4. 格式化结果
             videos = []
             for video in search_result.get("videos", []):
                 videos.append({
@@ -288,8 +276,7 @@ class BilibiliSearchAgent:
             app_logger.info(f"搜索完成，找到 {len(videos)} 个相关视频")
             return {
                 "success": True,
-                "source": "image",
-                "image_path": image_path,
+                "source": "analysis_result",
                 "analysis_result": analysis_result,
                 "keywords": keywords,
                 "search_intent": search_intent,
@@ -299,114 +286,17 @@ class BilibiliSearchAgent:
             }
             
         except Exception as e:
-            app_logger.error(f"从图片搜索视频失败: {e}")
+            app_logger.error(f"从分析结果搜索视频失败: {e}")
             return {
                 "success": False,
                 "error": str(e),
-                "source": "image",
-                "image_path": image_path
-            }
-    
-    async def search_from_text(
-        self,
-        text_description: str,
-        max_videos: int = 5
-    ) -> Dict[str, Any]:
-        """从文字描述搜索相关DIY教程视频（完整流程）
-        
-        Args:
-            text_description: 物品的文字描述
-            max_videos: 返回的最大视频数量
-            
-        Returns:
-            包含搜索结果的字典
-        """
-        try:
-            app_logger.info(f"开始从文字描述搜索DIY教程视频: {text_description[:50]}...")
-            
-            # 1. 文字分析
-            app_logger.info("步骤1: 分析文字内容")
-            analysis_result = await self.lanxin_service.analyze_text(text_description)
-            
-            if not analysis_result:
-                return {
-                    "success": False,
-                    "error": "文字分析失败",
-                    "source": "text_analysis"
-                }
-            
-            # 2. 关键词提取
-            app_logger.info("步骤2: 使用Function Calling提取搜索关键词")
-            extraction_result = await self._extract_keywords_with_function_calling(
-                analysis_result=analysis_result,
-                source_type="text"
-            )
-            
-            # 3. 获取关键词
-            if extraction_result.get("success"):
-                keywords = extraction_result["keywords"]
-                search_intent = extraction_result.get("search_intent", "")
-            else:
-                # 使用备用逻辑
-                app_logger.warning("Function Calling失败，使用备用关键词提取")
-                fallback_result = self._extract_keywords_fallback(analysis_result)
-                keywords = fallback_result["keywords"]
-                search_intent = fallback_result.get("search_intent", "寻找相关DIY教程")
-                extraction_result = fallback_result
-            
-            # 4. 搜索B站视频
-            app_logger.info(f"步骤3: 使用关键词搜索B站视频: {keywords}")
-            search_query = " ".join(keywords)
-            search_result = await self.bilibili_service.search_videos(
-                keyword=search_query,
-                page=1,
-                page_size=max_videos
-            )
-            
-            if search_result.get("error"):
-                raise Exception(f"B站搜索失败: {search_result['error']}")
-            
-            # 5. 格式化结果
-            videos = []
-            for video in search_result.get("videos", []):
-                videos.append({
-                    "title": video.title,
-                    "uploader": video.uploader_name,
-                    "url": video.video_url,
-                    "cover_url": video.cover_url,
-                    "danmaku_count": video.danmaku_count,
-                    "play_count": video.play_count,
-                    "duration": video.duration,
-                    "description": video.description[:100] + "..." if len(video.description) > 100 else video.description
-                })
-            
-            app_logger.info(f"搜索完成，找到 {len(videos)} 个相关视频")
-            return {
-                "success": True,
-                "source": "text",
-                "original_text": text_description,
-                "analysis_result": analysis_result,
-                "keywords": keywords,
-                "search_intent": search_intent,
-                "videos": videos,
-                "total": search_result.get("total", 0),
-                "function_call_result": extraction_result
-            }
-            
-        except Exception as e:
-            app_logger.error(f"从文字描述搜索视频失败: {e}")
-            return {
-                "success": False,
-                "error": str(e),
-                "source": "text",
-                "original_text": text_description
+                "source": "analysis_result"
             }
     
     async def close(self):
         """关闭Agent相关资源"""
         try:
             await self.client.aclose()
-            await self.lanxin_service.__aexit__(None, None, None)
         except Exception as e:
             app_logger.warning(f"关闭Agent资源时出现警告: {e}")
     

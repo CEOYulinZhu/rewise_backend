@@ -365,13 +365,4 @@ class CreativeRenovationPrompts:
                     "description": "改变物品的使用用途，发挥新的实用价值"
                 }
             ]
-        }
-
-    @classmethod
-    def get_all_prompts(cls) -> Dict[str, str]:
-        """获取所有提示词"""
-        return {
-            "system_prompt": cls.SYSTEM_PROMPT,
-            "user_prompt_template": cls.USER_PROMPT_TEMPLATE,
-            "simple_user_prompt_template": cls.SIMPLE_USER_PROMPT_TEMPLATE
         } 

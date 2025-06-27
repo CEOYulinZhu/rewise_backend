@@ -5,15 +5,13 @@
 ## 功能特性
 
 ### 🎯 核心功能
-- **智能分析**: 调用蓝心大模型对图片/文字进行深度分析
-- **步骤生成**: 生成详细的改造步骤，包括工具、材料、时间、难度
-- **安全指导**: 提供安全警告和操作建议
-- **成本估算**: 预估改造所需时间和材料成本
+- **智能步骤生成**: 基于物品分析结果生成详细的改造步骤
+- **AI驱动方案**: 使用蓝心大模型进行创意改造方案设计
+- **备用机制**: 当AI模型不可用时，提供基于规则的备用改造方案
+- **详细指导**: 包含工具、材料、时间、难度等完整信息
 
 ### 📊 输入方式
-1. **图片分析**: 上传物品图片，AI识别并分析
-2. **文字描述**: 提供物品的文字描述
-3. **分析结果**: 使用已有的物品分析结果
+- **分析结果输入**: 接收上层传入的物品分析结果（包含category、condition、description等信息）
 
 ### 🔧 输出内容
 - **项目信息**: 改造标题、描述、难度等级
@@ -28,11 +26,20 @@
 from app.agents.creative_renovation import CreativeRenovationAgent
 
 async def example_usage():
+    # 准备物品分析结果
+    analysis_result = {
+        "category": "家具",
+        "sub_category": "桌子",
+        "condition": "八成新",
+        "description": "一张旧木桌，表面有划痕但结构完好",
+        "material": "木质",
+        "color": "棕色",
+        "keywords": ["桌子", "木质", "家具"]
+    }
+    
     async with CreativeRenovationAgent() as agent:
-        # 从文字描述生成改造步骤
-        result = await agent.generate_from_text(
-            "一张旧木桌，表面有划痕但结构完好"
-        )
+        # 从分析结果生成改造步骤
+        result = await agent.generate_from_analysis(analysis_result)
         
         if result["success"]:
             renovation_plan = result["renovation_plan"]
@@ -42,7 +49,22 @@ async def example_usage():
             
             # 获取改造摘要
             summary = agent.get_step_summary(renovation_plan)
-            print(f"所需工具: {summary['required_tools']}")
+            print(f"摘要信息: {summary}")
+```
+
+## 分析结果输入格式
+
+```json
+{
+  "category": "物品类别（如：家具、电子产品等）",
+  "sub_category": "子类别（如：桌子、椅子等）",
+  "condition": "物品状态（如：全新、八成新、有磨损等）",
+  "description": "物品详细描述",
+  "material": "材质信息（可选）",
+  "color": "颜色信息（可选）",
+  "keywords": ["关键词列表"],
+  "special_features": "特殊特征（可选）"
+}
 ```
 
 ## 改造方案结构
@@ -63,7 +85,7 @@ async def example_usage():
       "description": "详细操作描述",
       "tools_needed": ["所需工具"],
       "materials_needed": ["所需材料"],
-      "estimated_time": "预计耗时",
+      "estimated_time_minutes": 30,
       "difficulty": "难度等级",
       "tips": ["操作小贴士"]
     }
@@ -104,4 +126,47 @@ async def example_usage():
 
 ## 备用机制
 
-当AI模型调用失败时，系统会自动启用备用改造方案生成机制，基于物品类别和状态提供基础的改造建议，确保功能的稳定性和可用性。 
+当AI模型调用失败时，系统会自动启用备用改造方案生成机制，基于物品类别和状态提供基础的改造建议，确保功能的稳定性和可用性。
+
+## 架构优化
+
+### 职责分离
+- **分析职责**: 由上层统一进行图片/文字分析
+- **改造职责**: 专注于从分析结果生成改造步骤
+- **高效复用**: 避免重复分析，提高响应速度
+
+### 输入验证
+- 自动验证分析结果格式
+- 提供清晰的错误提示
+- 支持不完整分析结果的兜底处理
+
+### 摘要功能
+- `get_step_summary()`: 获取改造方案摘要
+- `get_detailed_overview()`: 获取详细概览
+- `generate_summary_text()`: 生成文本摘要
+
+## 测试
+
+```bash
+# 运行完整测试套件
+pytest tests/agents/creative_renovation/
+
+# 运行简单测试
+python tests/agents/creative_renovation/test_agent.py
+```
+
+## 依赖模块
+
+- `app.services.renovation_summary_service`: 改造方案摘要服务
+- `app.prompts.creative_renovation_prompts`: 创意改造提示词管理
+- `app.core.config`: 配置管理
+- `app.core.logger`: 日志记录
+- `app.utils.vivo_auth`: VIVO API认证
+
+## 注意事项
+
+1. **API限制**: 需要配置有效的蓝心大模型API密钥
+2. **输入格式**: 确保分析结果包含必要的字段（category、condition等）
+3. **响应时间**: AI分析可能需要几秒时间，建议异步调用
+4. **错误处理**: 内置完善的错误处理和备用机制
+5. **资源管理**: 使用完毕后需要调用 `close()` 方法释放资源 

@@ -8,12 +8,12 @@
 import json
 import httpx
 import uuid
+import asyncio
 from typing import Dict, Any, Optional
 from urllib.parse import urlencode, urlparse
 
 from app.core.config import settings
 from app.core.logger import app_logger
-from app.services.llm.lanxin_service import LanxinService
 from app.services.renovation_summary_service import RenovationSummaryService
 from app.utils.vivo_auth import gen_sign_headers
 from app.prompts.creative_renovation_prompts import CreativeRenovationPrompts
@@ -23,15 +23,18 @@ class CreativeRenovationAgent:
     """创意改造步骤Agent - 智能改造方案生成"""
     
     def __init__(self):
-        self.lanxin_service = LanxinService()
-        
         # 蓝心大模型API配置
         self.app_id = settings.lanxin_app_id
         self.app_key = settings.lanxin_app_key
         self.base_url = settings.lanxin_api_base_url
         self.text_model = settings.lanxin_text_model
         
-        self.client = httpx.AsyncClient(timeout=30.0)
+        # 创建HTTP客户端，设置更长的默认超时和连接配置
+        self.client = httpx.AsyncClient(
+            timeout=httpx.Timeout(connect=15.0, read=60.0, write=30.0, pool=10.0),
+            limits=httpx.Limits(max_keepalive_connections=5, max_connections=10),
+            follow_redirects=True
+        )
     
     def _get_auth_headers(self, method: str, uri: str, query_params: Dict[str, str]) -> Dict[str, str]:
         """获取鉴权头部"""
@@ -45,54 +48,102 @@ class CreativeRenovationAgent:
         auth_headers["Content-Type"] = "application/json"
         return auth_headers
     
-    async def _call_lanxin_api(self, system_prompt: str, user_prompt: str) -> Dict[str, Any]:
-        """调用蓝心大模型API"""
-        try:
-            # 生成请求ID和会话ID
-            request_id = str(uuid.uuid4())
-            session_id = str(uuid.uuid4())
-            
-            # 构造请求参数
-            url_params = {"requestId": request_id}
-            
-            # 构造请求体
-            request_body = {
-                "model": self.text_model,
-                "sessionId": session_id,
-                "systemPrompt": system_prompt,
-                "prompt": user_prompt,
-                "extra": {
-                    "temperature": 0.3,  # 适中的温度，确保创意性和稳定性平衡
-                    "top_p": 0.8,
-                    "max_new_tokens": 1500  # 增加token限制以支持详细步骤
+    async def _call_lanxin_api(self, system_prompt: str, user_prompt: str, max_retries: int = 2) -> Dict[str, Any]:
+        """调用蓝心大模型API，支持重试机制"""
+        last_error = None
+        
+        for attempt in range(max_retries + 1):
+            try:
+                if attempt > 0:
+                    app_logger.info(f"API调用重试 {attempt}/{max_retries}")
+                    # 重试前等待一段时间
+                    await asyncio.sleep(2 * attempt)
+                
+                # 生成请求ID和会话ID
+                request_id = str(uuid.uuid4())
+                session_id = str(uuid.uuid4())
+                
+                app_logger.info(f"蓝心API调用开始 - 尝试 {attempt + 1}/{max_retries + 1}")
+                
+                # 构造请求参数
+                url_params = {"requestId": request_id}
+                
+                # 构造请求体
+                request_body = {
+                    "model": self.text_model,
+                    "sessionId": session_id,
+                    "systemPrompt": system_prompt,
+                    "prompt": user_prompt,
+                    "extra": {
+                        "temperature": 0.3,  # 适中的温度，确保创意性和稳定性平衡
+                        "top_p": 0.8,
+                        "max_new_tokens": 3500  # 增加token限制以支持详细步骤
+                    }
                 }
-            }
-            
-            # 获取鉴权头部
-            parsed_url = urlparse(self.base_url)
-            uri = parsed_url.path
-            headers = self._get_auth_headers("POST", uri, url_params)
-            
-            # 发送请求
-            url = f"{self.base_url}?{urlencode(url_params)}"
-            response = await self.client.post(
-                url,
-                headers=headers,
-                json=request_body
-            )
-            
-            response.raise_for_status()
-            result = response.json()
-            
-            # 检查响应状态
-            if result.get("code") != 0:
-                raise Exception(f"API调用失败: {result.get('msg', '未知错误')}")
-            
-            return result["data"]
-            
-        except Exception as e:
-            app_logger.error(f"蓝心大模型API调用失败: {e}")
-            raise
+                
+                # 获取鉴权头部
+                parsed_url = urlparse(self.base_url)
+                uri = parsed_url.path
+                headers = self._get_auth_headers("POST", uri, url_params)
+                
+                # 发送请求，设置更长的超时时间
+                url = f"{self.base_url}?{urlencode(url_params)}"
+                
+                # 使用更长的超时时间：连接超时15秒，读取超时60秒
+                timeout = httpx.Timeout(connect=15.0, read=60.0, write=30.0, pool=10.0)
+                
+                response = await self.client.post(
+                    url,
+                    headers=headers,
+                    json=request_body,
+                    timeout=timeout
+                )
+                
+                # 检查HTTP状态码
+                response.raise_for_status()
+                result = response.json()
+                
+                # 检查响应状态
+                if result.get("code") != 0:
+                    error_msg = result.get('msg', '未知错误')
+                    raise Exception(f"API返回错误: {error_msg}")
+                
+                app_logger.info(f"蓝心大模型API调用成功 - 尝试 {attempt + 1}")
+                return result["data"]
+                
+            except httpx.TimeoutException as e:
+                last_error = f"API调用超时: {e}"
+                app_logger.warning(f"尝试 {attempt + 1} 超时: {e}")
+                if attempt < max_retries:
+                    continue
+                else:
+                    break
+                    
+            except httpx.NetworkError as e:
+                last_error = f"网络连接错误: {e}"
+                app_logger.warning(f"尝试 {attempt + 1} 网络错误: {e}")
+                if attempt < max_retries:
+                    continue
+                else:
+                    break
+                    
+            except httpx.HTTPStatusError as e:
+                last_error = f"HTTP状态错误: {e.response.status_code}"
+                app_logger.warning(f"尝试 {attempt + 1} HTTP错误: {e.response.status_code}")
+                # HTTP错误通常不需要重试
+                break
+                
+            except Exception as e:
+                last_error = f"API调用失败: {e}"
+                app_logger.warning(f"尝试 {attempt + 1} 其他错误: {e}")
+                if attempt < max_retries:
+                    continue
+                else:
+                    break
+        
+        # 所有重试都失败了
+        app_logger.error(f"蓝心大模型API调用失败，已重试 {max_retries} 次: {last_error}")
+        raise Exception(last_error)
     
     def _parse_renovation_response(self, content: str) -> Optional[Dict[str, Any]]:
         """解析改造方案响应"""
@@ -169,137 +220,25 @@ class CreativeRenovationAgent:
         
         return True
     
-    async def generate_from_image(self, image_path: str) -> Dict[str, Any]:
-        """从图片分析生成创意改造步骤
-        
-        Args:
-            image_path: 图片文件路径
-            
-        Returns:
-            包含详细改造步骤的字典
-        """
-        try:
-            app_logger.info(f"开始从图片生成创意改造步骤: {image_path}")
-            
-            # 1. 图片分析
-            app_logger.info("步骤1: 分析图片内容")
-            analysis_result = await self.lanxin_service.analyze_image(image_path)
-            
-            if not analysis_result or analysis_result.get("category") == "错误":
-                return {
-                    "success": False,
-                    "error": "图片分析失败",
-                    "source": "image_analysis"
-                }
-            
-            # 2. 生成改造步骤
-            app_logger.info("步骤2: 使用蓝心大模型生成创意改造步骤")
-            renovation_result = await self._generate_renovation_steps(analysis_result)
-            
-            if not renovation_result.get("success"):
-                # 使用备用改造方案
-                app_logger.warning("大模型改造方案生成失败，使用备用改造方案")
-                fallback_plan = CreativeRenovationPrompts.get_fallback_renovation_plan(
-                    category=analysis_result.get("category", "未知"),
-                    condition=analysis_result.get("condition", "八成新"),
-                    description=analysis_result.get("description", "")
-                )
-                renovation_result = {
-                    "success": True,
-                    "renovation_plan": fallback_plan,
-                    "source": "fallback"
-                }
-            
-            app_logger.info("创意改造步骤生成完成")
-            return {
-                "success": True,
-                "source": "image",
-                "image_path": image_path,
-                "analysis_result": analysis_result,
-                "renovation_plan": renovation_result["renovation_plan"],
-                "generation_source": renovation_result.get("source", "ai_model")
-            }
-            
-        except Exception as e:
-            app_logger.error(f"从图片生成创意改造步骤失败: {e}")
-            return {
-                "success": False,
-                "error": str(e),
-                "source": "image",
-                "image_path": image_path
-            }
-    
-    async def generate_from_text(self, text_description: str) -> Dict[str, Any]:
-        """从文字描述生成创意改造步骤
-        
-        Args:
-            text_description: 物品的文字描述
-            
-        Returns:
-            包含详细改造步骤的字典
-        """
-        try:
-            app_logger.info(f"开始从文字描述生成创意改造步骤: {text_description[:50]}...")
-            
-            # 1. 文字分析
-            app_logger.info("步骤1: 分析文字内容")
-            analysis_result = await self.lanxin_service.analyze_text(text_description)
-            
-            if not analysis_result:
-                return {
-                    "success": False,
-                    "error": "文字分析失败",
-                    "source": "text_analysis"
-                }
-            
-            # 2. 生成改造步骤
-            app_logger.info("步骤2: 使用蓝心大模型生成创意改造步骤")
-            renovation_result = await self._generate_renovation_steps(analysis_result)
-            
-            if not renovation_result.get("success"):
-                # 使用备用改造方案
-                app_logger.warning("大模型改造方案生成失败，使用备用改造方案")
-                fallback_plan = CreativeRenovationPrompts.get_fallback_renovation_plan(
-                    category=analysis_result.get("category", "未知"),
-                    condition=analysis_result.get("condition", "八成新"),
-                    description=analysis_result.get("description", text_description)
-                )
-                renovation_result = {
-                    "success": True,
-                    "renovation_plan": fallback_plan,
-                    "source": "fallback"
-                }
-            
-            app_logger.info("创意改造步骤生成完成")
-            return {
-                "success": True,
-                "source": "text",
-                "original_text": text_description,
-                "analysis_result": analysis_result,
-                "renovation_plan": renovation_result["renovation_plan"],
-                "generation_source": renovation_result.get("source", "ai_model")
-            }
-            
-        except Exception as e:
-            app_logger.error(f"从文字描述生成创意改造步骤失败: {e}")
-            return {
-                "success": False,
-                "error": str(e),
-                "source": "text",
-                "original_text": text_description
-            }
-    
     async def generate_from_analysis(self, analysis_result: Dict[str, Any]) -> Dict[str, Any]:
-        """从已有的分析结果生成创意改造步骤
+        """从分析结果生成创意改造步骤
         
         Args:
-            analysis_result: 物品分析结果
+            analysis_result: 物品分析结果，包含category、condition、description等信息
             
         Returns:
             包含详细改造步骤的字典
         """
         try:
             app_logger.info("开始从分析结果生成创意改造步骤")
+            
+            # 验证分析结果格式
+            if not analysis_result or not isinstance(analysis_result, dict):
+                return {
+                    "success": False,
+                    "error": "分析结果为空或格式错误",
+                    "source": "analysis_validation"
+                }
             
             # 生成改造步骤
             renovation_result = await self._generate_renovation_steps(analysis_result)
@@ -375,47 +314,21 @@ class CreativeRenovationAgent:
             }
     
     def get_step_summary(self, renovation_plan: Dict[str, Any]) -> Dict[str, Any]:
-        """获取改造步骤摘要信息（使用新的概览服务）"""
+        """获取改造步骤摘要信息"""
         try:
-            # 使用新的概览服务
-            overview = RenovationSummaryService.extract_overview(renovation_plan)
-            
-            # 保持原有接口兼容性，同时提供更丰富的信息
-            legacy_format = {
-                "total_steps": overview.get("steps_summary", {}).get("total_steps", 0),
-                "project_title": overview.get("project_title", ""),
-                "difficulty_level": overview.get("overall_difficulty", ""),
-                "required_tools": overview.get("resources_summary", {}).get("tools_list", []),
-                "required_materials": overview.get("resources_summary", {}).get("materials_list", []),
-                "required_skills": overview.get("difficulty_analysis", {}).get("skill_requirements", []),
-                "safety_warnings_count": overview.get("safety_warnings_count", 0),
-                "has_alternative_ideas": overview.get("has_alternative_ideas", False)
-            }
-            
-            # 添加新的详细信息
-            legacy_format.update({
-                "detailed_overview": overview,
-                "total_minutes": overview.get("time_summary", {}).get("total_minutes", 0),
-                "total_hours": overview.get("time_summary", {}).get("total_hours", 0),
-                "time_range": overview.get("time_summary", {}).get("time_range", "未知"),
-                "cost_range": overview.get("cost_summary", {}),
-                "beginner_friendly": overview.get("difficulty_analysis", {}).get("beginner_friendly", False),
-                "complexity_score": overview.get("difficulty_analysis", {}).get("complexity_score", 0)
-            })
-            
-            return legacy_format
+            # 直接使用新的概览服务
+            return RenovationSummaryService.extract_overview(renovation_plan)
             
         except Exception as e:
             app_logger.error(f"获取改造步骤摘要失败: {e}")
             return {
-                "total_steps": 0,
                 "project_title": "改造方案摘要获取失败",
                 "error": str(e)
             }
     
     def get_detailed_overview(self, renovation_plan: Dict[str, Any]) -> Dict[str, Any]:
-        """获取详细的改造方案概览"""
-        return RenovationSummaryService.extract_overview(renovation_plan)
+        """获取详细的改造方案概览（与get_step_summary相同）"""
+        return self.get_step_summary(renovation_plan)
     
     def generate_summary_text(self, renovation_plan: Dict[str, Any]) -> str:
         """生成改造方案的文本摘要"""
@@ -426,7 +339,6 @@ class CreativeRenovationAgent:
         """关闭Agent相关资源"""
         try:
             await self.client.aclose()
-            await self.lanxin_service.__aexit__(None, None, None)
         except Exception as e:
             app_logger.warning(f"关闭Agent资源时出现警告: {e}")
     
