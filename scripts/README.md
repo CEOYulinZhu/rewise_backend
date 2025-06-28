@@ -1,11 +1,11 @@
-# 开发环境管理脚本 - 使用指南
+# 开发环境启动脚本 - 使用指南
 
 ## 📋 脚本简介
 
-`setup_env.py` 是闲置物语后端项目的**一键开发环境管理工具**，专为简化项目初始化和日常开发启动而设计。
+`setup_env.py` 是闲置物语后端项目的**一键开发环境启动工具**，专为简化项目启动和日常开发而设计。
 
 ### 🎯 主要功能
-- 🔧 **环境配置**：自动生成 `.env` 配置文件
+- 🔍 **环境检查**：验证 `.env` 配置文件是否存在
 - 📁 **目录管理**：创建项目所需的目录结构
 - 🐳 **服务管理**：启动 Docker 基础设施（数据库、缓存）
 - 🚀 **应用启动**：一键启动完整开发环境
@@ -18,13 +18,13 @@
 ### 对于开发人员
 
 ```powershell
-# 首次使用（完整设置）
+# 首次使用或完整启动（推荐）
 python scripts/setup_env.py start
 
-# 仅设置环境文件（如果需要重新生成配置）
+# 仅检查环境和创建目录
 python scripts/setup_env.py setup
 
-# 无参数运行（默认仅设置环境）
+# 无参数运行（默认检查环境）
 python scripts/setup_env.py
 ```
 
@@ -32,20 +32,24 @@ python scripts/setup_env.py
 
 如果你需要启动后端服务进行测试或演示：
 
-1. **打开 PowerShell**
+1. **确保有配置文件**
+   - 确认项目根目录下有 `.env` 文件
+   - 如果没有，可以复制 `env.example` 文件并重命名为 `.env`
+
+2. **打开 PowerShell**
    - 按 `Win + R`，输入 `powershell`，回车
 
-2. **进入项目目录**
+3. **进入项目目录**
    ```powershell
    cd "你的项目路径\闲置物语-后端"
    ```
 
-3. **一键启动**
+4. **一键启动**
    ```powershell
    python scripts/setup_env.py start
    ```
 
-4. **等待启动完成**
+5. **等待启动完成**
    - 看到 "🔄 启动中..." 后应用会自动启动
    - 访问 http://localhost:8000 查看应用
 
@@ -56,23 +60,23 @@ python scripts/setup_env.py
 ### 🔧 命令详解
 
 #### `python scripts/setup_env.py` （默认模式）
-**功能**：仅设置环境配置
+**功能**：检查环境配置
 ```powershell
 python scripts/setup_env.py
 
 # 执行内容：
-# ✅ 创建 .env 配置文件（如果不存在）
+# ✅ 检查 .env 配置文件是否存在
 # ✅ 创建必要目录（data、logs 等）
 # ℹ️  显示后续操作提示
 ```
 
 **适用场景**：
-- 首次克隆项目后的初始化
-- 需要重新生成配置文件
-- 仅需要环境准备，不启动服务
+- 首次克隆项目后的环境检查
+- 确认环境配置是否正确
+- 仅需要目录准备，不启动服务
 
 #### `python scripts/setup_env.py setup`
-**功能**：明确的环境设置模式（与默认模式相同）
+**功能**：明确的环境检查模式（与默认模式相同）
 ```powershell
 python scripts/setup_env.py setup
 
@@ -85,11 +89,12 @@ python scripts/setup_env.py setup
 python scripts/setup_env.py start
 
 # 执行流程：
-# 1. 🔧 设置环境配置
-# 2. 🔍 检查 Docker 状态
-# 3. 🐳 启动 PostgreSQL 和 Redis
-# 4. ⏳ 等待服务就绪
-# 5. 🚀 启动 FastAPI 应用
+# 1. 🔍 检查环境配置
+# 2. 📁 创建必要目录
+# 3. 🔍 检查 Docker 状态
+# 4. 🐳 启动 PostgreSQL 和 Redis
+# 5. ⏳ 等待服务就绪
+# 6. 🚀 启动 FastAPI 应用
 ```
 
 **适用场景**：
@@ -101,10 +106,11 @@ python scripts/setup_env.py start
 
 ## 🔍 执行流程详解
 
-### 环境设置阶段
+### 环境检查阶段
 ```
-🚀 正在设置闲置物语后端开发环境...
-✅ 已创建环境配置文件: /path/to/.env
+🔍 检查环境配置...
+✅ .env配置文件存在
+📁 创建必要的目录...
 ✅ 已创建目录: /path/to/data/chroma_db
 ✅ 已创建目录: /path/to/data/uploads
 ✅ 已创建目录: /path/to/logs
@@ -146,7 +152,7 @@ python scripts/setup_env.py start
 
 ### 配置文件
 ```
-.env                    # 环境变量配置（自动生成）
+.env                    # 环境变量配置（需手动创建或从仓库获取）
 ├── 应用配置
 ├── 数据库配置
 ├── Redis配置
@@ -170,9 +176,9 @@ init-db/              # 数据库初始化脚本目录
 
 ## ⚙️ 配置说明
 
-### 自动生成的 .env 配置
+### .env 配置文件说明
 
-脚本会创建包含以下配置的 `.env` 文件：
+项目需要 `.env` 配置文件来正常运行，包含以下主要配置：
 
 ```env
 # 应用配置
@@ -197,6 +203,10 @@ LANXIN_APP_KEY=wmuPTuICigJsKdYU
 # 安全配置
 SECRET_KEY=xianzhiwuyu-dev-secret-key-2024
 ```
+
+**如果 .env 文件不存在**：
+- 可以参考 `env.example` 文件创建
+- 或者从团队成员获取配置文件
 
 ### 🔧 自定义配置
 
@@ -344,7 +354,7 @@ python scripts/setup_env.py unknown_command
 ### 常见问题
 - **应用无法访问**：检查 http://localhost:8000/health
 - **数据库连接失败**：确认 Docker 服务正常运行
-- **配置文件问题**：删除 `.env` 后重新运行脚本
+- **配置文件问题**：检查 `.env` 文件是否存在，参考 `env.example` 创建
 
 ---
 
