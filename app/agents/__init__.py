@@ -8,5 +8,12 @@ from .bilibili_search import BilibiliSearchAgent
 from .disposal_recommendation import DisposalRecommendationAgent
 from .creative_renovation import CreativeRenovationAgent
 from .creative_coordinator import CreativeCoordinatorAgent
+from .recycling_location import RecyclingLocationAgent
 
-__all__ = ["BilibiliSearchAgent", "DisposalRecommendationAgent", "CreativeRenovationAgent", "CreativeCoordinatorAgent"] 
+__all__ = [
+    "BilibiliSearchAgent", 
+    "DisposalRecommendationAgent", 
+    "CreativeRenovationAgent", 
+    "CreativeCoordinatorAgent",
+    "RecyclingLocationAgent"
+] 

@@ -7,5 +7,6 @@
 from .llm_prompts import LLMPrompts
 from .disposal_recommendation_prompts import DisposalRecommendationPrompts
 from .creative_renovation_prompts import CreativeRenovationPrompts
+from .recycling_location_prompts import RecyclingLocationPrompts
 
-__all__ = ["LLMPrompts", "DisposalRecommendationPrompts", "CreativeRenovationPrompts"] 
+__all__ = ["LLMPrompts", "DisposalRecommendationPrompts", "CreativeRenovationPrompts", "RecyclingLocationPrompts"] 

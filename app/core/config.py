@@ -25,7 +25,14 @@ class Settings(BaseSettings):
     
     # 安全配置
     secret_key: str = Field(default="test-secret-key-for-development", env="SECRET_KEY")
-    allowed_hosts: List[str] = Field(default=["localhost", "127.0.0.1"], env="ALLOWED_HOSTS")
+    allowed_hosts: str = Field(default="localhost,127.0.0.1", env="ALLOWED_HOSTS")
+    
+    @property
+    def allowed_hosts_list(self) -> List[str]:
+        """将允许的主机字符串转换为列表"""
+        if self.allowed_hosts == "*":
+            return ["*"]
+        return [host.strip() for host in self.allowed_hosts.split(",") if host.strip()]
     
     # 数据库配置
     database_url: str = Field(default="postgresql+asyncpg://user:pass@localhost:5432/testdb", env="DATABASE_URL")
@@ -45,10 +52,16 @@ class Settings(BaseSettings):
     chroma_collection_name: str = Field(default="item_knowledge", env="CHROMA_COLLECTION_NAME")
     
     # 蓝心大模型API配置
-    lanxin_app_id: str = Field(default="2025251747", env="LANXIN_APP_ID")
-    lanxin_app_key: str = Field(default="wmuPTuICigJsKdYU", env="LANXIN_APP_KEY")
+    lanxin_app_id: str = Field(env="LANXIN_APP_ID")
+    lanxin_app_key: str = Field(env="LANXIN_APP_KEY")
     lanxin_api_base_url: str = Field(default="https://api-ai.vivo.com.cn/vivogpt/completions", env="LANXIN_API_BASE_URL")
     lanxin_text_model: str = Field(default="vivo-BlueLM-TB-Pro", env="LANXIN_TEXT_MODEL")
+    
+    # 高德地图API配置
+    amap_api_key: str = Field(env="AMAP_API_KEY")
+    amap_api_base_url: str = Field(default="https://restapi.amap.com/v5/place/around", env="AMAP_API_BASE_URL")
+    amap_timeout: int = Field(default=30, env="AMAP_TIMEOUT")
+    amap_max_retries: int = Field(default=3, env="AMAP_MAX_RETRIES")
     
     # 文件存储配置
     upload_dir: str = Field(default=str(BASE_DIR / "data" / "uploads"), env="UPLOAD_DIR")
@@ -66,13 +79,9 @@ class Settings(BaseSettings):
     log_level: str = Field(default="INFO", env="LOG_LEVEL")
     log_file: str = Field(default=str(BASE_DIR / "logs" / "app.log"), env="LOG_FILE")
     
-    # 第三方平台API配置
-    xianyu_api_base: str = Field(default="https://h5api.m.taobao.com", env="XIANYU_API_BASE")
-    zhuanzhuan_api_base: str = Field(default="https://app.zhuanzhuan.com", env="ZHUANZHUAN_API_BASE")
-    dewu_api_base: str = Field(default="https://app.dewu.com", env="DEWU_API_BASE")
-    
+
     class Config:
-        env_file = ".env"
+        env_file = BASE_DIR / ".env"
         env_file_encoding = "utf-8"
         case_sensitive = False
 

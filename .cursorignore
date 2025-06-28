@@ -8,7 +8,7 @@ __pycache__/
 *.so
 
 # 虚拟环境
-.env
+!.env
 .venv/
 env/
 venv/

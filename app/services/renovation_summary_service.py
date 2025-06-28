@@ -4,7 +4,8 @@
 从创意改造方案中提取关键信息，生成概览统计数据
 """
 
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
+
 from app.core.logger import app_logger
 
 

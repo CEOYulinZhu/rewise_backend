@@ -144,3 +144,6 @@ Thumbs.db
 # 临时文件
 *.tmp
 *.temp 
+
+# 最后才跟踪的文件
+docker-compose.yml

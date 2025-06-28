@@ -12,10 +12,13 @@ asyncpg==0.29.0
 psycopg2-binary==2.9.9
 sqlalchemy[asyncio]==2.0.23
 alembic==1.12.1
+geoalchemy2==0.14.2
 
-# AI/LLM相关
-langchain==0.1.0
-langchain-community==0.0.10
+# AI/LLM相关 - 修复版本兼容性
+langchain>=0.3.25,<0.4.0
+langchain-community>=0.3.0,<0.4.0
+langchain-core>=0.3.0,<0.4.0
+langchain-text-splitters>=0.3.0,<0.4.0
 chromadb==0.4.18
 httpx==0.25.2
 
@@ -24,9 +27,9 @@ pandas==2.1.4
 numpy==1.25.2
 pillow==10.1.0
 
-# 配置和环境变量
-pydantic==2.5.0
-pydantic-settings==2.1.0
+# 配置和环境变量 - 修复 pydantic-settings 版本
+pydantic>=2.5.0,<3.0.0
+pydantic-settings>=2.4.0,<3.0.0
 python-dotenv==1.0.0
 
 # 日志和监控
@@ -41,3 +44,8 @@ pytest-asyncio==0.21.1
 black==23.11.0
 isort==5.12.0
 flake8==6.1.0 
+
+
+# 数据爬取
+# 哔哩哔哩
+bilibili-api-python
