@@ -64,7 +64,7 @@ class XianyuService:
             "sec-fetch-storage-access": "active",
             "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0",
             # 使用最新的Cookie（更新x5sec参数）
-            "cookie": "cna=BU6dH0HZ6RYCAQ6WBZ2fWMpM; xlly_s=1; mtop_partitioned_detect=1; _m_h5_tk=a94cae29f73c89ab66028d05baa54c32_1751343360170; _m_h5_tk_enc=fff09e42d1dcdc4c74fa80ff94908791; x5sec=7b22733b32223a2230656165653363643632656337376437222c22617365727665723b33223a22307c434b71596a634d47454b664831594d434967646a623235755a574e304d4c7941345050352f2f2f2f2f77453d227d"
+            "cookie": "cna=BU6dH0HZ6RYCAQ6WBZ2fWMpM; xlly_s=1; mtop_partitioned_detect=1; _m_h5_tk=b4987f1d46f5cfbd773d5673d42bc95a_1751385917179; _m_h5_tk_enc=221c17ea382e87a6c5dc43404c089eb0; x5sec=7b22733b32223a2232646266326361313335636230316562222c22617365727665723b33223a22307c435057386a384d47454f435675346a2b2f2f2f2f2f77456942324e76626d356c5933517776494467382f6e2f2f2f2f2f41513d3d227d"
         }
     
     def _generate_current_timestamp(self) -> str:

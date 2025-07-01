@@ -49,6 +49,27 @@ from .xianyu_models import (
     XianyuSearchDataConverter
 )
 
+from .task import (
+    ProcessingTask,
+    RecyclingChannel,
+    OnlineRecyclingPlatform,
+    TaskCreate,
+    TaskResponse,
+    TaskStatus,
+    ProcessingResult
+)
+
+from .secondhand_search_models import (
+    SecondhandPlatformProduct,
+    XianyuSimplifiedProduct,
+    AihuishouSimplifiedProduct,
+    PlatformPriceStats,
+    SecondhandSearchKeywords,
+    SecondhandSearchRequest,
+    SecondhandSearchResult,
+    SecondhandSearchDataConverter
+)
+
 __all__ = [
     # 创意改造协调器模型
     "RenovationStep",
@@ -87,5 +108,24 @@ __all__ = [
     "XianyuPriceStats",
     "XianyuSearchRequest",
     "XianyuSearchResponse",
-    "XianyuSearchDataConverter"
+    "XianyuSearchDataConverter",
+    
+    # 任务相关模型
+    "ProcessingTask",
+    "RecyclingChannel",
+    "OnlineRecyclingPlatform",
+    "TaskCreate",
+    "TaskResponse",
+    "TaskStatus",
+    "ProcessingResult",
+    
+    # 二手平台搜索相关模型
+    "SecondhandPlatformProduct",
+    "XianyuSimplifiedProduct",
+    "AihuishouSimplifiedProduct",
+    "PlatformPriceStats",
+    "SecondhandSearchKeywords",
+    "SecondhandSearchRequest",
+    "SecondhandSearchResult",
+    "SecondhandSearchDataConverter"
 ] 

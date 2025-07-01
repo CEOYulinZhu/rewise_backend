@@ -10,10 +10,14 @@ from .creative_renovation import CreativeRenovationAgent
 from .creative_coordinator import CreativeCoordinatorAgent
 from .recycling_location import RecyclingLocationAgent
 
+# 二手平台搜索Agent
+from .secondhand_search import SecondhandSearchAgent
+
 __all__ = [
     "BilibiliSearchAgent", 
     "DisposalRecommendationAgent", 
     "CreativeRenovationAgent", 
     "CreativeCoordinatorAgent",
-    "RecyclingLocationAgent"
+    "RecyclingLocationAgent",
+    "SecondhandSearchAgent"
 ] 

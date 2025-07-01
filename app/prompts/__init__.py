@@ -9,4 +9,14 @@ from .disposal_recommendation_prompts import DisposalRecommendationPrompts
 from .creative_renovation_prompts import CreativeRenovationPrompts
 from .recycling_location_prompts import RecyclingLocationPrompts
 
-__all__ = ["LLMPrompts", "DisposalRecommendationPrompts", "CreativeRenovationPrompts", "RecyclingLocationPrompts"] 
+# 二手平台搜索提示词
+from .secondhand_search_prompts import SecondhandSearchPrompts
+
+__all__ = [
+    "BilibiliSearchPrompts",
+    "CreativeRenovationPrompts", 
+    "DisposalRecommendationPrompts",
+    "LLMPrompts",
+    "RecyclingLocationPrompts",
+    "SecondhandSearchPrompts"
+] 
