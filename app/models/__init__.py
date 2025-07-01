@@ -33,6 +33,22 @@ from .recycling_location_models import (
     RecyclingLocationDataConverter
 )
 
+from .aihuishou_models import (
+    AihuishouProduct,
+    AihuishouPriceStats,
+    AihuishouSearchRequest,
+    AihuishouSearchResponse,
+    AihuishouSearchDataConverter
+)
+
+from .xianyu_models import (
+    XianyuProduct,
+    XianyuPriceStats,
+    XianyuSearchRequest,
+    XianyuSearchResponse,
+    XianyuSearchDataConverter
+)
+
 __all__ = [
     # 创意改造协调器模型
     "RenovationStep",
@@ -57,5 +73,19 @@ __all__ = [
     
     # 回收地点推荐模型
     "RecyclingLocationResponse",
-    "RecyclingLocationDataConverter"
+    "RecyclingLocationDataConverter",
+    
+    # 爱回收搜索模型
+    "AihuishouProduct",
+    "AihuishouPriceStats",
+    "AihuishouSearchRequest",
+    "AihuishouSearchResponse",
+    "AihuishouSearchDataConverter",
+    
+    # 闲鱼搜索模型
+    "XianyuProduct",
+    "XianyuPriceStats",
+    "XianyuSearchRequest",
+    "XianyuSearchResponse",
+    "XianyuSearchDataConverter"
 ] 
