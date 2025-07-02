@@ -50,6 +50,7 @@ class Settings(BaseSettings):
     # ChromaDB配置
     chroma_db_path: str = Field(default=str(BASE_DIR / "data" / "chroma_db"), env="CHROMA_DB_PATH")
     chroma_collection_name: str = Field(default="item_knowledge", env="CHROMA_COLLECTION_NAME")
+    chroma_platform_collection_name: str = Field(default="secondhand_platforms", env="CHROMA_PLATFORM_COLLECTION_NAME")
     
     # 蓝心大模型API配置
     lanxin_app_id: str = Field(env="LANXIN_APP_ID")

@@ -13,11 +13,15 @@ from .recycling_location import RecyclingLocationAgent
 # 二手平台搜索Agent
 from .secondhand_search import SecondhandSearchAgent
 
+# 平台推荐Agent  
+from .platform_recommendation import PlatformRecommendationAgent
+
 __all__ = [
     "BilibiliSearchAgent", 
     "DisposalRecommendationAgent", 
     "CreativeRenovationAgent", 
     "CreativeCoordinatorAgent",
     "RecyclingLocationAgent",
-    "SecondhandSearchAgent"
+    "SecondhandSearchAgent",
+    "PlatformRecommendationAgent"
 ] 

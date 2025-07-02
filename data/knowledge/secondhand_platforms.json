@@ -1,0 +1,202 @@
+[
+    {
+        "platform_icon": "🐟",
+        "platform_name": "闲鱼",
+        "description": "阿里旗下'国民级'二手社区，用户超3亿，覆盖全品类",
+        "focus_categories": [
+            "全品类",
+            "电子产品",
+            "家具家电",
+            "潮玩盲盒"
+        ],
+        "tags": [
+            "芝麻信用分参考",
+            "支付宝担保交易",
+            "闲鱼优品专区（官方质检认证）"
+        ],
+        "user_data": {
+            "registered_users": "超6亿",
+            "monthly_active_users": "2.09亿（2025年3月）",
+            "cumulative_users": null,
+            "daily_new_users": null,
+            "transaction_volume": null
+        },
+        "rating": {
+            "app_store": 4.7,
+            "yingyongbao": 4.4,
+            "kuan": null
+        },
+        "transaction_model": "C2C（个人卖家占比超90%）"
+    },
+    {
+        "platform_icon": "🔄",
+        "platform_name": "转转",
+        "description": "58同城旗下平台，主打年轻用户群体，近期与京东拍拍合并",
+        "focus_categories": [
+            "3C数码",
+            "图书",
+            "手机回收"
+        ],
+        "tags": [
+            "官方验机",
+            "AI验机（检测时间缩至1天）",
+            "假货率降至3%以下"
+        ],
+        "user_data": {
+            "registered_users": null,
+            "monthly_active_users": "0.36亿（2025年3月，同比下跌5.3%）",
+            "cumulative_users": null,
+            "daily_new_users": null,
+            "transaction_volume": null
+        },
+        "rating": {
+            "app_store": null,
+            "yingyongbao": 4.4,
+            "kuan": 4.2
+        },
+        "transaction_model": "C2C、C2B2C（与京东拍拍合并后3C数码领域优势显著）"
+    },
+    {
+        "platform_icon": "📱",
+        "platform_name": "爱回收",
+        "description": "专注电子产品回收，提供上门取件、信用回收等服务",
+        "focus_categories": [
+            "电子产品回收",
+            "手机",
+            "平板",
+            "笔记本电脑"
+        ],
+        "tags": [
+            "上门取件",
+            "信用回收",
+            "与京东苹果合作以旧换新",
+            "AI验机中心"
+        ],
+        "user_data": {
+            "registered_users": null,
+            "monthly_active_users": null,
+            "cumulative_users": "超2000万（2025年，'爱回收・爱分类'）",
+            "daily_new_users": null,
+            "transaction_volume": null
+        },
+        "rating": {
+            "app_store": null,
+            "yingyongbao": 4.8,
+            "kuan": null
+        },
+        "transaction_model": "B2B2C（手机回收毛利率达20%）"
+    },
+    {
+        "platform_icon": "💎",
+        "platform_name": "红布林",
+        "description": "二手奢侈品头部平台，转转全资收购",
+        "focus_categories": [
+            "二手奢侈品",
+            "高端时尚品牌"
+        ],
+        "tags": [
+            "专业鉴定师团队",
+            "C2B2C模式",
+            "90后用户占比超60%"
+        ],
+        "user_data": {
+            "registered_users": null,
+            "monthly_active_users": null,
+            "cumulative_users": null,
+            "daily_new_users": null,
+            "transaction_volume": "预计突破50亿元（2025年）"
+        },
+        "rating": {
+            "app_store": 3.7,
+            "yingyongbao": 4.9,
+            "kuan": null
+        },
+        "transaction_model": "C2B2C（已被转转全资收购）"
+    },
+    {
+        "platform_icon": "📚",
+        "platform_name": "孔夫子旧书网",
+        "description": "古旧书交易鼻祖，聚集大量绝版书、碑帖等藏品",
+        "focus_categories": [
+            "古旧书",
+            "碑帖",
+            "古籍",
+            "珍本"
+        ],
+        "tags": [
+            "支持直播拍卖",
+            "书友圈社交功能",
+            "文玩爱好者必逛"
+        ],
+        "user_data": {
+            "registered_users": "超2200万",
+            "monthly_active_users": null,
+            "cumulative_users": null,
+            "daily_new_users": "约6000人",
+            "transaction_volume": null
+        },
+        "rating": {
+            "app_store": null,
+            "yingyongbao": 3.7,
+            "kuan": null
+        },
+        "transaction_model": "C2C、B2C（商家入驻模式）"
+    },
+    {
+        "platform_icon": "🐠",
+        "platform_name": "多抓鱼",
+        "description": "二手书循环标杆，采用'回收+翻新+销售'闭环模式",
+        "focus_categories": [
+            "二手书籍",
+            "部分二手服装"
+        ],
+        "tags": [
+            "臭氧消毒",
+            "塑封包装",
+            "环保理念"
+        ],
+        "user_data": {
+            "registered_users": null,
+            "monthly_active_users": null,
+            "cumulative_users": "近600万",
+            "daily_new_users": null,
+            "transaction_volume": null,
+            "recycled_books": "超130万册"
+        },
+        "rating": {
+            "app_store": 4.9,
+            "yingyongbao": null,
+            "kuan": null
+        },
+        "transaction_model": "B2B2C（回收+翻新+销售闭环）"
+    },
+    {
+        "platform_icon": "🛒",
+        "platform_name": "拍拍",
+        "description": "京东旗下二手交易平台，已与转转合并",
+        "focus_categories": [
+            "3C数码产品",
+            "手机",
+            "电脑"
+        ],
+        "tags": [
+            "京东官方认证",
+            "即时支付",
+            "专业质检"
+        ],
+        "user_data": {
+            "registered_users": null,
+            "monthly_active_users": null,
+            "cumulative_users": null,
+            "daily_new_users": null,
+            "transaction_volume": null,
+            "note": "2025年合并后数据未单独公布"
+        },
+        "rating": {
+            "app_store": null,
+            "yingyongbao": 4.6,
+            "kuan": null
+        },
+        "transaction_model": "B2C（京东自营模式）"
+    }
+]
