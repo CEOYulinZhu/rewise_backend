@@ -19,6 +19,9 @@ from .secondhand_search import SecondhandSearchAgent
 # 平台推荐Agent  
 from .platform_recommendation import PlatformRecommendationAgent
 
+# 二手交易协调器Agent
+from .secondhand_coordinator import SecondhandTradingAgent
+
 __all__ = [
     "BilibiliSearchAgent", 
     "DisposalRecommendationAgent", 
@@ -27,5 +30,6 @@ __all__ = [
     "RecyclingLocationAgent",
     "RecyclingCoordinatorAgent",
     "SecondhandSearchAgent",
-    "PlatformRecommendationAgent"
+    "PlatformRecommendationAgent",
+    "SecondhandTradingAgent"
 ] 
