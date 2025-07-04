@@ -33,6 +33,11 @@ from .recycling_location_models import (
     RecyclingLocationDataConverter
 )
 
+from .recycling_coordinator_models import (
+    RecyclingCoordinatorResponse,
+    RecyclingCoordinatorDataConverter
+)
+
 from .aihuishou_models import (
     AihuishouProduct,
     AihuishouPriceStats,
@@ -95,6 +100,10 @@ __all__ = [
     # 回收地点推荐模型
     "RecyclingLocationResponse",
     "RecyclingLocationDataConverter",
+    
+    # 回收捐赠总协调器模型
+    "RecyclingCoordinatorResponse",
+    "RecyclingCoordinatorDataConverter",
     
     # 爱回收搜索模型
     "AihuishouProduct",

@@ -10,6 +10,9 @@ from .creative_renovation import CreativeRenovationAgent
 from .creative_coordinator import CreativeCoordinatorAgent
 from .recycling_location import RecyclingLocationAgent
 
+# 回收捐赠总协调器Agent
+from .recycling_coordinator import RecyclingCoordinatorAgent
+
 # 二手平台搜索Agent
 from .secondhand_search import SecondhandSearchAgent
 
@@ -22,6 +25,7 @@ __all__ = [
     "CreativeRenovationAgent", 
     "CreativeCoordinatorAgent",
     "RecyclingLocationAgent",
+    "RecyclingCoordinatorAgent",
     "SecondhandSearchAgent",
     "PlatformRecommendationAgent"
 ] 
