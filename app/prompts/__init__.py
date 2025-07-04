@@ -12,11 +12,15 @@ from .recycling_location_prompts import RecyclingLocationPrompts
 # 二手平台搜索提示词
 from .secondhand_search_prompts import SecondhandSearchPrompts
 
+# 文案生成提示词
+from .content_generation_prompts import ContentGenerationPrompts
+
 __all__ = [
     "BilibiliSearchPrompts",
     "CreativeRenovationPrompts", 
     "DisposalRecommendationPrompts",
     "LLMPrompts",
     "RecyclingLocationPrompts",
-    "SecondhandSearchPrompts"
+    "SecondhandSearchPrompts",
+    "ContentGenerationPrompts"
 ] 

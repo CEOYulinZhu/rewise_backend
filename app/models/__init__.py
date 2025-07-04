@@ -75,6 +75,12 @@ from .secondhand_search_models import (
     SecondhandSearchDataConverter
 )
 
+from .content_generation_models import (
+    ContentGenerationResult,
+    ContentGenerationResponse,
+    ContentGenerationDataConverter
+)
+
 __all__ = [
     # 创意改造协调器模型
     "RenovationStep",
@@ -136,5 +142,10 @@ __all__ = [
     "SecondhandSearchKeywords",
     "SecondhandSearchRequest",
     "SecondhandSearchResult",
-    "SecondhandSearchDataConverter"
+    "SecondhandSearchDataConverter",
+    
+    # 文案生成相关模型
+    "ContentGenerationResult",
+    "ContentGenerationResponse",
+    "ContentGenerationDataConverter"
 ] 

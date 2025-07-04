@@ -147,3 +147,6 @@ Thumbs.db
 
 # 最后才跟踪的文件
 docker-compose.yml
+
+# cursor规则文件
+.cursor
