@@ -4,11 +4,10 @@
 定义二手交易协调器的请求、响应和数据转换结构
 """
 
-import time
 from typing import Dict, Any, Optional
+
 from pydantic import BaseModel, Field
 
-from app.models.secondhand_search_models import SecondhandSearchResult
 from app.models.content_generation_models import ContentGenerationResponse
 
 

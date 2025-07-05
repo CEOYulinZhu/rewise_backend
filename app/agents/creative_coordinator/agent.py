@@ -10,10 +10,10 @@ from typing import Dict, Any, Optional
 from concurrent.futures import ThreadPoolExecutor
 
 from app.core.logger import app_logger
-from app.agents.creative_renovation import CreativeRenovationAgent
-from app.agents.bilibili_search import BilibiliSearchAgent
+from app.agents.creative_renovation.agent import CreativeRenovationAgent
+from app.agents.bilibili_search.agent import BilibiliSearchAgent
 from app.services.bilibili_ranking_service import BilibiliRankingService
-from app.models.coordinator_models import CoordinatorResponse, CoordinatorDataConverter
+from app.models.creative_coordinator_models import CoordinatorResponse, CoordinatorDataConverter
 
 
 class CreativeCoordinatorAgent:
@@ -157,8 +157,12 @@ class CreativeCoordinatorAgent:
             
             # 处理视频信息
             videos = []
+            keywords = None
+            search_intent = None
             if video_search_success:
                 raw_videos = video_result.get("videos", [])
+                keywords = video_result.get("keywords", [])
+                search_intent = video_result.get("search_intent", "")
                 app_logger.info(f"开始对 {len(raw_videos)} 个视频进行排序")
                 
                 # 使用排序服务筛选前5个视频
@@ -179,7 +183,9 @@ class CreativeCoordinatorAgent:
             response = CoordinatorResponse(
                 success=True,
                 renovation_plan=renovation_plan,
-                videos=videos
+                videos=videos,
+                keywords=keywords,
+                search_intent=search_intent
             )
             
             app_logger.info(f"协调器结果处理完成: 改造方案={'有' if renovation_plan else '无'}, 视频数量={len(videos)}")

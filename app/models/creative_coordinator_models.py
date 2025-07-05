@@ -59,6 +59,8 @@ class CoordinatorResponse:
     success: bool                       # 操作是否成功
     renovation_plan: Optional[RenovationPlan] = None  # 改造方案
     videos: List[VideoInfo] = field(default_factory=list)  # 推荐视频列表
+    keywords: Optional[List[str]] = None  # 搜索关键字
+    search_intent: Optional[str] = None   # 搜索意图
     error: Optional[str] = None         # 错误信息（失败时）
     
     def to_dict(self) -> dict:
@@ -108,6 +110,13 @@ class CoordinatorResponse:
                 }
                 for video in self.videos
             ]
+        
+        # 添加搜索关键字和搜索意图
+        if self.keywords:
+            result["keywords"] = self.keywords
+        
+        if self.search_intent:
+            result["search_intent"] = self.search_intent
         
         return result
 

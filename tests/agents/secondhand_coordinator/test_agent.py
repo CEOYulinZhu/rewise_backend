@@ -15,7 +15,7 @@ project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from app.agents.secondhand_coordinator.agent import SecondhandTradingAgent
-from app.models.secondhand_trading_models import (
+from app.models.secondhand_coordinator_models import (
     SecondhandTradingRequest, 
     SecondhandTradingResponse,
     SecondhandTradingDataConverter

@@ -20,7 +20,7 @@ sys.path.insert(0, str(project_root))
 
 from app.agents.creative_coordinator import CreativeCoordinatorAgent
 from app.core.logger import app_logger
-from app.models.coordinator_models import CoordinatorResponse
+from app.models.creative_coordinator_models import CoordinatorResponse
 
 
 def print_separator(title: str, width: int = 80):

@@ -5,11 +5,11 @@
 整合回收地点推荐和平台推荐的结果
 """
 
-from dataclasses import dataclass, field
-from typing import List, Optional, Dict, Any
+from dataclasses import dataclass
+from typing import Optional, Dict, Any
 
-from app.models.recycling_location_models import RecyclingLocationResponse
 from app.models.platform_recommendation_agent_models import PlatformRecommendationResponse
+from app.models.recycling_location_models import RecyclingLocationResponse
 
 
 @dataclass

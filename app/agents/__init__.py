@@ -1,7 +1,7 @@
 """
 AI Agent模块
 
-包含各种智能处理Agent，基于LangChain实现
+包含各种智能处理Agent
 """
 
 from .bilibili_search import BilibiliSearchAgent
@@ -22,6 +22,9 @@ from .platform_recommendation import PlatformRecommendationAgent
 # 二手交易协调器Agent
 from .secondhand_coordinator import SecondhandTradingAgent
 
+# 总处理协调器Agent
+from .processing_master import ProcessingMasterAgent
+
 __all__ = [
     "BilibiliSearchAgent", 
     "DisposalRecommendationAgent", 
@@ -31,5 +34,6 @@ __all__ = [
     "RecyclingCoordinatorAgent",
     "SecondhandSearchAgent",
     "PlatformRecommendationAgent",
-    "SecondhandTradingAgent"
+    "SecondhandTradingAgent",
+    "ProcessingMasterAgent"
 ] 

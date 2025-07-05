@@ -64,7 +64,7 @@ class XianyuService:
             "sec-fetch-storage-access": "active",
             "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0",
             # 使用最新的Cookie（更新x5sec参数）
-            "cookie": "BU6dH0HZ6RYCAQ6WBZ2fWMpM; mtop_partitioned_detect=1; _m_h5_tk=ad6dfecbebfa89acfb9b75d4d639d73b_1751619689036; _m_h5_tk_enc=4b3d840cc7708c1515c41b29a7d04638; x5sec=7b22733b32223a2265613135643563633837326363646634222c22617365727665723b33223a22307c434e766e6e634d47454a6639714977444967646a623235755a574e304d4c7941345050352f2f2f2f2f77453d227d"
+            "cookie": "cna=BU6dH0HZ6RYCAQ6WBZ2fWMpM; mtop_partitioned_detect=1; x5sec=7b22733b32223a2261303333303366383064303338643830222c22617365727665723b33223a22307c434d47536f734d4745496d4c796549484967646a623235755a574e304d4c7941345050352f2f2f2f2f77453d227d; _m_h5_tk=d94b5d77c03dcfbe8da6a386f8932fec_1751688946901; _m_h5_tk_enc=b2440fd410dd0ba5f9082edc859fefba"
         }
     
     def _generate_current_timestamp(self) -> str:

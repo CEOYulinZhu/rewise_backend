@@ -4,7 +4,7 @@
 包含所有SQLAlchemy数据模型和Pydantic模式
 """
 
-from .coordinator_models import (
+from .creative_coordinator_models import (
     RenovationStep,
     RenovationSummary, 
     RenovationPlan,
@@ -81,6 +81,21 @@ from .content_generation_models import (
     ContentGenerationDataConverter
 )
 
+from .processing_master_models import (
+    ProcessingStep,
+    ProcessingStepStatus,
+    ProcessingMasterRequest,
+    ProcessingMasterResponse,
+    ProcessingAnalysisMetadata,
+    ProcessingAgentSummary,
+    ProcessingMetadata,
+    DisposalSolution,
+    CreativeSolution,
+    RecyclingSolution,
+    SecondhandSolution,
+    ProcessingMasterDataConverter
+)
+
 __all__ = [
     # 创意改造协调器模型
     "RenovationStep",
@@ -147,5 +162,19 @@ __all__ = [
     # 文案生成相关模型
     "ContentGenerationResult",
     "ContentGenerationResponse",
-    "ContentGenerationDataConverter"
+    "ContentGenerationDataConverter",
+    
+    # 总处理协调器相关模型
+    "ProcessingStep",
+    "ProcessingStepStatus",
+    "ProcessingMasterRequest",
+    "ProcessingMasterResponse",
+    "ProcessingAnalysisMetadata",
+    "ProcessingAgentSummary",
+    "ProcessingMetadata",
+    "DisposalSolution",
+    "CreativeSolution",
+    "RecyclingSolution",
+    "SecondhandSolution",
+    "ProcessingMasterDataConverter"
 ] 

@@ -12,7 +12,7 @@ from typing import Dict, Any, Optional
 from app.core.logger import app_logger
 from app.agents.secondhand_search.agent import SecondhandSearchAgent
 from app.agents.content_generation.agent import ContentGenerationAgent
-from app.models.secondhand_trading_models import (
+from app.models.secondhand_coordinator_models import (
     SecondhandTradingResponse,
     SecondhandTradingRequest,
     SecondhandTradingDataConverter
