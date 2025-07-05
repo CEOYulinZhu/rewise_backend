@@ -11,6 +11,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from app.core.logger import app_logger
 from app.models.processing_master_models import ProcessingMasterRequest
 from app.agents.processing_master.agent import ProcessingMasterAgent
+from app.api.dependencies.validation import validate_processing_master_request
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
@@ -60,7 +61,7 @@ async def websocket_process(websocket: WebSocket):
         
         # 验证请求格式
         try:
-            request = ProcessingMasterRequest(**request_json)
+            request = validate_processing_master_request(request_json)
         except Exception as e:
             await websocket.send_text(json.dumps({
                 "type": "error", 
@@ -70,11 +71,16 @@ async def websocket_process(websocket: WebSocket):
             return
         
         app_logger.info(f"开始WebSocket处理请求: {request.text_description[:50] if request.text_description else 'image_only'}...")
+        app_logger.debug(f"请求详情 - image_url存在: {bool(request.image_url)}, text_description: {request.text_description}, user_location: {request.user_location}")
         
         # 使用总处理协调器Agent处理请求
         async with ProcessingMasterAgent() as agent:
             try:
+                step_count = 0
                 async for step in agent.process_complete_solution(request):
+                    step_count += 1
+                    app_logger.debug(f"收到第{step_count}个步骤: {step.step_name} - {step.status.value}")
+                    
                     # 发送步骤更新
                     step_data = {
                         "type": "step_update",
@@ -87,7 +93,7 @@ async def websocket_process(websocket: WebSocket):
                     
                     # 添加结果数据（如果有）
                     if step.result is not None:
-                        step_data["result"] = step.result
+                        step_data["result"] = step.result  # type: ignore
                         # 特别记录最终结果
                         if step.step_name == "result_integration":
                             app_logger.info(f"最终结果步骤: 状态={step.status.value}, 结果大小={len(str(step.result))}")
@@ -102,10 +108,12 @@ async def websocket_process(websocket: WebSocket):
                     
                     # 添加元数据（如果有）
                     if step.metadata:
-                        step_data["metadata"] = step.metadata
+                        step_data["metadata"] = step.metadata  # type: ignore
                     
                     await websocket.send_text(json.dumps(step_data, ensure_ascii=False))
                     app_logger.debug(f"发送步骤更新: {step.step_name} - {step.status.value}")
+                
+                app_logger.info(f"处理完成，总共处理了{step_count}个步骤")
                 
                 # 发送完成信号
                 await websocket.send_text(json.dumps({

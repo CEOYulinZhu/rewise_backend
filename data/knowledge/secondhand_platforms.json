@@ -1,6 +1,6 @@
 [
     {
-        "platform_icon": "https://i.postimg.cc/RqrWHrX7/xianyu.png",
+        "platform_icon": "",
         "platform_name": "闲鱼",
         "description": "阿里旗下'国民级'二手社区，用户超3亿，覆盖全品类",
         "focus_categories": [
@@ -57,7 +57,7 @@
         "transaction_model": "C2C、C2B2C（与京东拍拍合并后3C数码领域优势显著）"
     },
     {
-        "platform_icon": "https://i.postimg.cc/Y2TR3hP3/aihuishou.png",
+        "platform_icon": "",
         "platform_name": "爱回收",
         "description": "专注电子产品回收，提供上门取件、信用回收等服务",
         "focus_categories": [

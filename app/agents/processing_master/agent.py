@@ -405,6 +405,10 @@ class ProcessingMasterAgent:
             if request.image_url.startswith("http"):
                 # 网络图片URL暂时跳过验证
                 pass
+            elif request.image_url.startswith("data:"):
+                # data URI格式（base64编码图片）
+                if not self._is_valid_data_uri(request.image_url):
+                    return {"valid": False, "error": "无效的data URI格式"}
             else:
                 # 本地文件路径
                 image_path = Path(request.image_url)
@@ -415,6 +419,35 @@ class ProcessingMasterAgent:
             return {"valid": False, "error": "文字描述至少需要2个字符"}
         
         return {"valid": True}
+    
+    def _is_valid_data_uri(self, data_uri: str) -> bool:
+        """验证data URI格式"""
+        try:
+            # 基本格式验证：data:mediatype;encoding,data
+            if ',' not in data_uri:
+                return False
+            
+            header, data = data_uri.split(',', 1)
+            
+            # 验证header格式
+            if not header.startswith('data:'):
+                return False
+            
+            # 验证是否包含base64编码标识
+            if ';base64' not in header:
+                return False
+            
+            # 验证是否是图片类型
+            if not any(img_type in header for img_type in ['image/jpeg', 'image/png', 'image/gif', 'image/webp']):
+                return False
+            
+            # 验证base64数据部分不为空
+            if not data.strip():
+                return False
+            
+            return True
+        except Exception:
+            return False
     
     async def _create_no_location_result(self) -> Dict[str, Any]:
         """创建无位置信息时的回收协调结果"""

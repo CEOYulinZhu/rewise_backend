@@ -125,8 +125,12 @@ class LanxinService:
     
 
     
-    async def analyze_image(self, image_path: str) -> Dict[str, Any]:
-        """分析图片中的物品（使用蓝心视觉大模型）"""
+    async def analyze_image(self, image_input: str) -> Dict[str, Any]:
+        """分析图片中的物品（使用蓝心视觉大模型）
+        
+        Args:
+            image_input: 图片输入，可以是本地文件路径或data URI格式的base64数据
+        """
         
         app_logger.info("开始分析图片内容")
         
@@ -134,13 +138,35 @@ class LanxinService:
             import base64
             from pathlib import Path
             
-            # 检查图片文件是否存在
-            if not Path(image_path).exists():
-                raise FileNotFoundError(f"图片文件不存在: {image_path}")
-            
-            # 读取并编码图片
-            with open(image_path, "rb") as image_file:
-                image_data = base64.b64encode(image_file.read()).decode('utf-8')
+            # 判断输入类型并获取base64数据
+            if image_input.startswith("data:"):
+                # data URI格式 (data:image/jpeg;base64,...)
+                app_logger.info("检测到data URI格式图片")
+                if ',' not in image_input:
+                    raise ValueError("无效的data URI格式")
+                
+                header, image_data = image_input.split(',', 1)
+                
+                # 验证是否为base64格式
+                if ';base64' not in header:
+                    raise ValueError("data URI必须是base64编码格式")
+                
+                # image_data已经是base64编码的字符串
+                app_logger.info("从data URI提取base64数据成功")
+                
+            else:
+                # 本地文件路径
+                app_logger.info("检测到本地文件路径")
+                
+                # 检查图片文件是否存在
+                if not Path(image_input).exists():
+                    raise FileNotFoundError(f"图片文件不存在: {image_input}")
+                
+                # 读取并编码图片
+                with open(image_input, "rb") as image_file:
+                    image_data = base64.b64encode(image_file.read()).decode('utf-8')
+                
+                app_logger.info("从本地文件读取并编码图片成功")
             
             # 生成请求ID和会话ID
             request_id = str(uuid.uuid4())
@@ -259,7 +285,7 @@ class LanxinService:
                 "sub_category": "文件不存在",
                 "condition": "未知",
                 "keywords": [],
-                "description": f"图片文件不存在: {image_path}"
+                "description": f"图片文件不存在: {image_input}"
             }
         except Exception as e:
             app_logger.error(f"图片分析失败: {e}")

@@ -14,6 +14,7 @@ from app.core.config import settings
 from app.core.logger import app_logger
 from app.database.connection import create_tables, close_db
 from app.api.v1.tasks import router as tasks_router
+from app.api.v1.image_proxy import router as image_proxy_router
 
 
 @asynccontextmanager
@@ -96,6 +97,7 @@ async def health_check():
 
 # 注册API路由
 app.include_router(tasks_router, prefix=settings.api_prefix)
+app.include_router(image_proxy_router, prefix=f"{settings.api_prefix}/proxy", tags=["图片代理"])
 
 
 # 根路径

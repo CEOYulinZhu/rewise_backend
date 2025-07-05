@@ -12,6 +12,8 @@ from bilibili_api import search
 from bilibili_api.search import SearchObjectType, OrderVideo
 from loguru import logger
 
+from app.utils.image_proxy import image_proxy
+
 
 @dataclass
 class VideoInfo:
@@ -33,7 +35,7 @@ class BilibiliVideoSearchService:
     """哔哩哔哩视频搜索服务"""
     
     def __init__(self):
-        self.proxy_domain = "i0.hdslb.com"  # B站图片代理域名
+        pass
     
     def _format_duration(self, duration_str: str) -> str:
         """
@@ -107,19 +109,8 @@ class BilibiliVideoSearchService:
         if not cover_url:
             return ""
             
-        # 如果是相对路径，添加协议
-        if cover_url.startswith('//'):
-            cover_url = 'https:' + cover_url
-        
-        # 替换为代理域名以解决跨域问题
-        if 'i0.hdslb.com' in cover_url or 'i1.hdslb.com' in cover_url or 'i2.hdslb.com' in cover_url:
-            # 已经是代理域名，直接返回
-            return cover_url
-        
-        # 替换原始域名为代理域名
-        cover_url = re.sub(r'https?://[^/]+', f'https://{self.proxy_domain}', cover_url)
-        
-        return cover_url
+        # 使用图片代理服务处理B站封面URL
+        return image_proxy.proxy_bilibili_cover(cover_url)
     
     def _parse_video_item(self, item: Dict[str, Any]) -> Optional[VideoInfo]:
         """

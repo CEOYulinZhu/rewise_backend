@@ -23,6 +23,9 @@ from .vivo_auth import gen_sign_headers
 # 新增：分析结果合并器
 from .analysis_merger import AnalysisMerger
 
+# 新增：图片代理服务
+from .image_proxy import ImageProxyService, image_proxy
+
 __all__ = [
     # 距离工具
     "haversine_distance",
@@ -40,5 +43,9 @@ __all__ = [
     "gen_sign_headers",
     
     # 分析合并器
-    "AnalysisMerger"
+    "AnalysisMerger",
+    
+    # 图片代理服务
+    "ImageProxyService",
+    "image_proxy"
 ] 
